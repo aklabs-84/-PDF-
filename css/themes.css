@@ -1,0 +1,254 @@
+/* Theme Styles for Korean PDF Converter */
+
+/* CSS Variables for Light Theme (default) */
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-secondary: #64748b;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+
+  --border-color: #e5e7eb;
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme */
+.dark {
+  --color-primary: #3b82f6;
+  --color-primary-dark: #60a5fa;
+  --color-secondary: #94a3b8;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+
+  --border-color: #374151;
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Theme Toggle Animation */
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom Theme Classes */
+.theme-light {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-dark {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Button Themes */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Card Themes */
+.card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+/* Input Themes */
+.input {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Syntax Highlighting for Code Blocks (Light Theme) */
+.light pre code {
+  color: #1f2937;
+}
+
+.light .hljs-keyword {
+  color: #7c3aed;
+}
+
+.light .hljs-string {
+  color: #059669;
+}
+
+.light .hljs-number {
+  color: #dc2626;
+}
+
+.light .hljs-comment {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Syntax Highlighting for Code Blocks (Dark Theme) */
+.dark pre code {
+  color: #f9fafb;
+}
+
+.dark .hljs-keyword {
+  color: #a78bfa;
+}
+
+.dark .hljs-string {
+  color: #34d399;
+}
+
+.dark .hljs-number {
+  color: #f87171;
+}
+
+.dark .hljs-comment {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Theme-specific Markdown Preview Styles */
+.light #markdown-preview {
+  background-color: var(--bg-primary);
+}
+
+.dark #markdown-preview {
+  background-color: var(--bg-secondary);
+}
+
+/* Theme Toggle Button Icon */
+.theme-icon-sun {
+  display: none;
+}
+
+.dark .theme-icon-sun {
+  display: inline-block;
+}
+
+.dark .theme-icon-moon {
+  display: none;
+}
+
+/* Selection Colors */
+::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: inherit;
+}
+
+.dark ::selection {
+  background-color: rgba(59, 130, 246, 0.4);
+  color: inherit;
+}
+
+/* Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Disabled State */
+[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading State */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--color-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Accessibility - High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000000;
+  }
+
+  .dark {
+    --border-color: #ffffff;
+  }
+
+  .btn-primary {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print Mode - Always Light */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .dark {
+    background: white;
+    color: black;
+  }
+}

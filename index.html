@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="한글 마크다운을 PDF로 변환하는 무료 웹 애플리케이션">
+  <meta name="keywords" content="마크다운, PDF, 변환기, 한글, Markdown to PDF">
+  <title>한글 PDF 변환기 - Korean PDF Converter</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Highlight.js for code syntax -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/themes.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">한글 PDF 변환기</h1>
+          <span class="text-sm text-gray-500 dark:text-gray-400">v1.0</span>
+        </div>
+
+        <nav class="flex items-center space-x-4">
+          <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="테마 전환">
+            <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+
+          <button id="documents-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            내 문서
+          </button>
+
+          <button id="help-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            도움말
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container mx-auto px-4 py-6">
+
+    <!-- Toolbar -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- File Operations -->
+        <div class="flex items-center space-x-2 border-r border-gray-300 dark:border-gray-600 pr-4">
+          <button id="new-doc-btn" class="toolbar-btn" title="새 문서">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </button>
+          <button id="upload-file-btn" class="toolbar-btn" title="파일 열기">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+          </button>
+          <button id="save-doc-btn" class="toolbar-btn" title="저장 (Ctrl+S)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Markdown Tools -->
+        <div class="flex items-center space-x-2 border-r border-gray-300 dark:border-gray-600 pr-4">
+          <button id="bold-btn" class="toolbar-btn" title="굵게 (Ctrl+B)">
+            <span class="font-bold">B</span>
+          </button>
+          <button id="italic-btn" class="toolbar-btn" title="기울임 (Ctrl+I)">
+            <span class="italic">I</span>
+          </button>
+          <button id="heading-btn" class="toolbar-btn" title="제목">
+            <span class="font-bold">H</span>
+          </button>
+          <button id="link-btn" class="toolbar-btn" title="링크">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            </svg>
+          </button>
+          <button id="list-btn" class="toolbar-btn" title="목록">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+          <button id="code-btn" class="toolbar-btn" title="코드">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="flex items-center space-x-2 border-r border-gray-300 dark:border-gray-600 pr-4">
+          <button id="mode-toggle-btn" class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-xs font-medium" title="텍스트 모드 전환">
+            <span id="mode-label">마크다운</span>
+          </button>
+        </div>
+
+        <!-- PDF Export -->
+        <div class="flex items-center space-x-2">
+          <button id="template-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+            템플릿 선택
+          </button>
+          <button id="export-pdf-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+            PDF 변환
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div class="flex items-center space-x-4">
+          <span id="char-count">0 자</span>
+          <span id="word-count">0 단어</span>
+          <span id="line-count">0 줄</span>
+        </div>
+        <div id="auto-save-status" class="flex items-center space-x-2">
+          <span>자동 저장됨</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor & Preview Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Editor Panel -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          <h2 id="editor-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300">마크다운 에디터</h2>
+          <button id="fullscreen-editor-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="전체화면">
+            <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+            </svg>
+          </button>
+        </div>
+        <textarea
+          id="markdown-editor"
+          class="w-full h-[600px] p-4 resize-none focus:outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm"
+          placeholder="여기에 마크다운을 입력하세요...
+
+# 제목 1
+## 제목 2
+
+**굵은 글씨** _기울임_ `코드`
+
+- 목록 1
+- 목록 2
+
+[링크](https://example.com)"
+        ></textarea>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          <h2 id="preview-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300">마크다운 미리보기</h2>
+          <button id="fullscreen-preview-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="전체화면">
+            <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+            </svg>
+          </button>
+        </div>
+        <div id="markdown-preview" class="p-6 h-[600px] overflow-y-auto prose prose-slate dark:prose-invert max-w-none">
+          <p class="text-gray-400">미리보기가 여기에 표시됩니다...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drop Zone (Hidden by default) -->
+    <div id="drop-zone" class="hidden fixed inset-0 bg-blue-500 bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-2xl border-4 border-dashed border-blue-500">
+        <svg class="w-16 h-16 mx-auto text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <p class="text-xl font-semibold text-gray-700 dark:text-gray-300">파일을 여기에 놓으세요</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">.txt, .md, .markdown 파일 지원</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-6 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p>한글 PDF 변환기 v1.0 - Made with ❤️</p>
+      <p class="mt-1">무료로 마크다운을 PDF로 변환하세요</p>
+    </div>
+  </footer>
+
+  <!-- Hidden File Input -->
+  <input type="file" id="file-input" accept=".txt,.md,.markdown" multiple class="hidden">
+
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/storage/storage-manager.js"></script>
+  <script src="js/file/file-handler.js"></script>
+  <script src="js/editor/markdown-helper.js"></script>
+  <script src="js/editor/editor-manager.js"></script>
+  <script src="js/pdf/font-loader.js"></script>
+  <script src="js/pdf/template-engine.js"></script>
+  <script src="js/pdf/pdf-generator.js"></script>
+  <script src="js/ui/modal-manager.js"></script>
+  <script src="js/ui/ui-manager.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
