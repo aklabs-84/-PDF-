@@ -46,13 +46,13 @@ class TemplateEngine {
       clean: {
         name: 'clean',
         displayName: '클린',
-        description: '심플하고 깔끔한 디자인',
+        description: '심플하고 깔끔한 디자인. 일반 문서 및 메모에 적합합니다.',
         font: 'NanumGothic',
         fontSize: 12,
         lineHeight: 1.6,
         headingSize: {
-          1: 24,
-          2: 20,
+          1: 26,
+          2: 21,
           3: 18,
           4: 16,
           5: 14,
@@ -67,21 +67,23 @@ class TemplateEngine {
         orientation: 'portrait',
         pageSize: 'a4',
         colors: {
-          primary: '#333333',
-          secondary: '#666666',
-          accent: '#428bca'
+          primary: '#2c3e50',
+          secondary: '#7f8c8d',
+          accent: '#3498db',
+          code: '#ecf0f1',
+          codeText: '#e74c3c'
         }
       },
       business: {
         name: 'business',
         displayName: '비즈니스',
-        description: '전문적인 비즈니스 문서용',
+        description: '전문적인 비즈니스 문서용. 보고서, 제안서에 최적화되어 있습니다.',
         font: 'NanumMyeongjo',
         fontSize: 11,
         lineHeight: 1.8,
         headingSize: {
-          1: 22,
-          2: 18,
+          1: 24,
+          2: 19,
           3: 16,
           4: 14,
           5: 12,
@@ -96,21 +98,23 @@ class TemplateEngine {
         orientation: 'portrait',
         pageSize: 'a4',
         colors: {
-          primary: '#1a1a1a',
-          secondary: '#4a4a4a',
-          accent: '#2c5282'
+          primary: '#1a202c',
+          secondary: '#4a5568',
+          accent: '#2b6cb0',
+          code: '#edf2f7',
+          codeText: '#2d3748'
         }
       },
       academic: {
         name: 'academic',
         displayName: '학술',
-        description: '논문 및 학술 자료용',
+        description: '논문 및 학술 자료용. 넓은 줄 간격과 큰 여백으로 가독성이 뛰어납니다.',
         font: 'NanumMyeongjo',
         fontSize: 11,
         lineHeight: 2.0,
         headingSize: {
-          1: 20,
-          2: 17,
+          1: 22,
+          2: 18,
           3: 15,
           4: 13,
           5: 12,
@@ -126,24 +130,26 @@ class TemplateEngine {
         pageSize: 'a4',
         colors: {
           primary: '#000000',
-          secondary: '#333333',
-          accent: '#1e40af'
+          secondary: '#4a4a4a',
+          accent: '#1e3a8a',
+          code: '#f9fafb',
+          codeText: '#374151'
         }
       },
       creative: {
         name: 'creative',
         displayName: '크리에이티브',
-        description: '창의적이고 독특한 디자인',
+        description: '창의적이고 독특한 디자인. 개인 블로그, 창작물에 어울립니다.',
         font: 'NanumPen',
-        fontSize: 14,
-        lineHeight: 1.5,
+        fontSize: 15,
+        lineHeight: 1.7,
         headingSize: {
-          1: 28,
-          2: 24,
-          3: 20,
-          4: 18,
-          5: 16,
-          6: 14
+          1: 32,
+          2: 26,
+          3: 22,
+          4: 19,
+          5: 17,
+          6: 15
         },
         margin: {
           top: 60,
@@ -154,9 +160,11 @@ class TemplateEngine {
         orientation: 'portrait',
         pageSize: 'a4',
         colors: {
-          primary: '#2d3748',
+          primary: '#4a5568',
           secondary: '#718096',
-          accent: '#9f7aea'
+          accent: '#805ad5',
+          code: '#faf5ff',
+          codeText: '#6b46c1'
         }
       }
     };

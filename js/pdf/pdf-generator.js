@@ -108,7 +108,11 @@ class PDFGenerator {
   async renderPlainText(content) {
     this.doc.setFont(this.currentTemplate.font, 'normal');
     this.doc.setFontSize(this.currentTemplate.fontSize);
-    this.doc.setTextColor(this.currentTemplate.textColor);
+
+    // 텍스트 색상 설정 (colors.primary 사용)
+    const primaryColor = this.currentTemplate.colors?.primary || '#000000';
+    const rgb = this.hexToRgb(primaryColor);
+    this.doc.setTextColor(rgb.r, rgb.g, rgb.b);
 
     const maxWidth = this.getContentWidth();
     const lineHeight = this.currentTemplate.fontSize * this.currentTemplate.lineHeight;
@@ -421,6 +425,11 @@ class PDFGenerator {
       }
     });
 
+    // 데이터가 없으면 렌더링하지 않음
+    if (headers.length === 0 && rows.length === 0) {
+      return;
+    }
+
     // 페이지 넘김 확인
     if (this.yPosition > this.getPageHeight() - this.currentTemplate.margin.bottom - 100) {
       this.addPage();
@@ -435,14 +444,23 @@ class PDFGenerator {
       styles: {
         font: this.currentTemplate.font,
         fontSize: this.currentTemplate.fontSize - 1,
-        cellPadding: 5,
-        lineColor: [200, 200, 200],
-        lineWidth: 0.5
+        cellPadding: 6,
+        lineColor: [180, 180, 180],
+        lineWidth: 0.5,
+        textColor: [50, 50, 50],
+        halign: 'left',
+        valign: 'middle'
       },
       headStyles: {
-        fillColor: [66, 139, 202],
-        textColor: 255,
-        fontStyle: 'bold'
+        fillColor: [240, 240, 240],
+        textColor: [50, 50, 50],
+        fontStyle: 'bold',
+        halign: 'left',
+        lineWidth: 0.5,
+        lineColor: [180, 180, 180]
+      },
+      alternateRowStyles: {
+        fillColor: [250, 250, 250]
       },
       margin: {
         left: this.currentTemplate.margin.left,
@@ -761,5 +779,26 @@ class PDFGenerator {
    */
   getPageHeight() {
     return this.doc.internal.pageSize.getHeight();
+  }
+
+  /**
+   * HEX 색상을 RGB로 변환
+   * @param {string} hex - HEX 색상 (#RRGGBB)
+   * @returns {Object} RGB 객체 {r, g, b}
+   */
+  hexToRgb(hex) {
+    // #을 제거
+    hex = hex.replace(/^#/, '');
+
+    // 3자리 HEX인 경우 6자리로 확장
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    return { r, g, b };
   }
 }

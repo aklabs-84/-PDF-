@@ -430,12 +430,11 @@ let app;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     app = new App();
+    window.app = app;  // 초기화 전에 전역 설정
     app.init();
   });
 } else {
   app = new App();
+  window.app = app;  // 초기화 전에 전역 설정
   app.init();
 }
-
-// 전역에서 접근 가능하도록 설정
-window.app = app;

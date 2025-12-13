@@ -252,7 +252,32 @@ class UIManager {
    * 템플릿 선택 모달 표시
    */
   showTemplateSelector() {
-    const templates = window.app.templateEngine.getAllTemplates();
+    let templates = [];
+
+    try {
+      if (window && window.app && window.app.templateEngine && typeof window.app.templateEngine.getAllTemplates === 'function') {
+        templates = window.app.templateEngine.getAllTemplates();
+      }
+    } catch (error) {
+      console.error('Failed to get templates from TemplateEngine:', error);
+      templates = [];
+    }
+
+    // 폴백: 템플릿이 없으면 TemplateEngine의 기본 템플릿 사용
+    if (!templates || templates.length === 0) {
+      try {
+        const te = new TemplateEngine();
+        const defaults = te.getDefaultTemplates();
+        templates = Object.values(defaults);
+      } catch (e) {
+        templates = [];
+      }
+    }
+
+    if (!templates || templates.length === 0) {
+      this.modalManager.alert('템플릿을 불러올 수 없습니다. 콘솔을 확인하세요.');
+      return;
+    }
 
     const content = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -270,26 +295,40 @@ class UIManager {
       </div>
     `;
 
-    this.modalManager.show('template-selector', {
-      title: '템플릿 선택',
-      content: content,
-      size: 'large',
-      buttons: [
-        { label: '취소', action: 'close', className: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' }
-      ]
-    });
-
-    // 템플릿 카드 클릭 이벤트
-    setTimeout(() => {
-      document.querySelectorAll('.template-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const templateName = card.dataset.template;
-          window.app.templateEngine.setCurrentTemplate(templateName);
-          this.modalManager.close('template-selector');
-          this.showToast('success', `${card.querySelector('h4').textContent} 템플릿이 선택되었습니다.`);
-        });
+    try {
+      this.modalManager.show('template-selector', {
+        title: '템플릿 선택',
+        content: content,
+        size: 'large',
+        buttons: [
+          { label: '취소', action: 'close', className: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' }
+        ]
       });
-    }, 100);
+
+      // 템플릿 카드 클릭 이벤트
+      setTimeout(() => {
+        document.querySelectorAll('.template-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const templateName = card.dataset.template;
+            try {
+              if (window && window.app && window.app.templateEngine && typeof window.app.templateEngine.setCurrentTemplate === 'function') {
+                window.app.templateEngine.setCurrentTemplate(templateName);
+              }
+              // 템플릿 변경 이벤트 브로드캐스트
+              window.dispatchEvent(new CustomEvent('template-changed', { detail: { template: templateName } }));
+              this.modalManager.close('template-selector');
+              this.showToast('success', `${card.querySelector('h4').textContent} 템플릿이 선택되었습니다.`);
+            } catch (e) {
+              console.error('Failed to set template:', e);
+              this.modalManager.alert('템플릿 적용 중 오류가 발생했습니다. 콘솔을 확인하세요.');
+            }
+          });
+        });
+      }, 100);
+    } catch (e) {
+      console.error('Failed to show template selector modal:', e);
+      this.modalManager.alert('템플릿 선택창을 열 수 없습니다. 콘솔을 확인하세요.');
+    }
   }
 
   /**

@@ -45,8 +45,8 @@ body {
 
 /* Markdown Preview Styles */
 #markdown-preview {
-  font-size: 16px;
-  line-height: 1.8;
+  /* 폰트 크기와 줄 간격은 템플릿에서 동적으로 설정됨 */
+  /* font-size와 line-height는 제거하여 템플릿 스타일이 우선 적용되도록 함 */
 }
 
 #markdown-preview h1 {
@@ -124,19 +124,35 @@ body {
 }
 
 #markdown-preview table {
-  @apply w-full border-collapse mb-4;
+  @apply w-full mb-4;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 #markdown-preview table thead {
-  @apply bg-gray-100 dark:bg-gray-800;
+  @apply bg-gray-50 dark:bg-gray-800;
 }
 
 #markdown-preview table th {
-  @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-900 dark:text-white;
+  @apply border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold text-gray-900 dark:text-white;
+  background-color: #f8f9fa;
+}
+
+.dark #markdown-preview table th {
+  background-color: #374151;
 }
 
 #markdown-preview table td {
-  @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300;
+  @apply border border-gray-300 dark:border-gray-600 px-4 py-3 text-gray-700 dark:text-gray-300;
+}
+
+#markdown-preview table tbody tr:nth-child(even) {
+  @apply bg-gray-50 dark:bg-gray-800 dark:bg-opacity-30;
+}
+
+#markdown-preview table tbody tr:hover {
+  @apply bg-gray-100 dark:bg-gray-700 dark:bg-opacity-50;
+  transition: background-color 0.2s ease;
 }
 
 #markdown-preview img {

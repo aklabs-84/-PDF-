@@ -94,6 +94,12 @@ class EditorManager {
     window.addEventListener('mode-changed', (e) => {
       this.setPlainTextMode(e.detail.plainTextMode);
     });
+
+    // 템플릿 변경 이벤트 수신: 미리보기 갱신
+    window.addEventListener('template-changed', () => {
+      // 즉시가 아닌 디바운스된 갱신 사용
+      if (this.updatePreviewDebounced) this.updatePreviewDebounced();
+    });
   }
 
   /**
@@ -152,6 +158,7 @@ class EditorManager {
       return;
     }
 
+    // Marked.js 기본 옵션 설정
     marked.setOptions({
       gfm: true, // GitHub Flavored Markdown
       breaks: true, // 줄바꿈을 <br>로 변환
@@ -160,18 +167,45 @@ class EditorManager {
       pedantic: false,
       sanitize: false, // HTML 허용
       smartLists: true,
-      smartypants: false,
-      highlight: (code, lang) => {
-        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
-          try {
-            return hljs.highlight(code, { language: lang }).value;
-          } catch (err) {
-            console.error('Highlight error:', err);
-          }
-        }
-        return code;
-      }
+      smartypants: false
     });
+
+    // 커스텀 렌더러 확장 - marked.use()로 부분 오버라이드
+    try {
+      const renderer = {
+        table(header, body) {
+          if (body) body = `<tbody>${body}</tbody>`;
+          return '<table class="kpdf-table">\n'
+            + '<thead>\n'
+            + header
+            + '</thead>\n'
+            + body
+            + '</table>\n';
+        },
+        code(code, infostring) {
+          const lang = (infostring || '').match(/\S*/)[0];
+          if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+            try {
+              const highlighted = hljs.highlight(code, { language: lang }).value;
+              return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>\n`;
+            } catch (err) {
+              console.error('Highlight error:', err);
+            }
+          }
+          const escapedCode = code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+          return `<pre><code>${escapedCode}</code></pre>\n`;
+        }
+      };
+
+      marked.use({ renderer });
+    } catch (e) {
+      console.error('Failed to configure marked renderer:', e);
+    }
   }
 
   /**
@@ -194,7 +228,25 @@ class EditorManager {
     // 마크다운 모드
     try {
       const html = this.parseMarkdown(content);
+
+      // HTML 문자열인지 확인
+      if (typeof html !== 'string') {
+        console.error('parseMarkdown did not return a string:', html);
+        this.preview.innerHTML = '<p class="text-red-500">마크다운 파싱 오류가 발생했습니다.</p>';
+        return;
+      }
+
       this.preview.innerHTML = html;
+
+      // 선택된 템플릿 스타일 적용
+      try {
+        const template = window.app && window.app.templateEngine ? window.app.templateEngine.getActiveTemplate() : null;
+        if (template) {
+          this.applyTemplateStylesToPreview(template);
+        }
+      } catch (e) {
+        console.error('Failed to apply template styles to preview:', e);
+      }
 
       // 코드 블록 하이라이팅
       if (typeof hljs !== 'undefined') {
@@ -236,6 +288,16 @@ class EditorManager {
       .join('');
 
     this.preview.innerHTML = html || '<p class="text-gray-400">미리보기가 여기에 표시됩니다...</p>';
+
+    // Apply template styles to plain text preview
+    try {
+      const template = window.app && window.app.templateEngine ? window.app.templateEngine.getActiveTemplate() : null;
+      if (template) {
+        this.applyTemplateStylesToPreview(template);
+      }
+    } catch (e) {
+      console.error('Failed to apply template styles to plain text preview:', e);
+    }
   }
 
   /**
@@ -248,7 +310,226 @@ class EditorManager {
       throw new Error('Marked.js not loaded');
     }
 
-    return marked.parse(markdown);
+    // 간단한 전처리: 파이프(|)로 구성된 표 블록이 있는데 구분선(---)이 없다면 자동으로 삽입
+    const preprocessed = (function(src) {
+      const lines = src.split('\n');
+      const out = [];
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+
+        // 코드 블록 시작/종료 처리: ``` 블록에서는 변형 금지
+        if (/^\s*```/.test(line)) {
+          out.push(line);
+          i++;
+          // 복사해서 끝까지 붙여넣기
+          while (i < lines.length && !/^\s*```/.test(lines[i])) {
+            out.push(lines[i]);
+            i++;
+          }
+          if (i < lines.length) { out.push(lines[i]); i++; }
+          continue;
+        }
+
+        // 파이프 포함 행 탐지 (더 유연한 테이블 감지)
+        if (line.includes('|') && line.trim().length > 0) {
+          // 연속된 파이프 행 블록 수집
+          const block = [line];
+          let j = i + 1;
+          while (j < lines.length) {
+            const nextLine = lines[j].trim();
+            // 빈 줄이 나오면 테이블 블록 종료
+            if (nextLine.length === 0) break;
+            // 파이프가 없으면 테이블 블록 종료
+            if (!nextLine.includes('|')) break;
+            block.push(lines[j]);
+            j++;
+          }
+
+          // 블록이 1행 이상일 때 두 번째 행이 구분자 패턴인지 검사
+          const second = block[1];
+          const isSeparator = typeof second !== 'undefined' && (
+            /^\s*\|?\s*:?-{3,}(:?\s*\|.*)?$/.test(second.trim()) ||
+            second.split('|').some(s=>/-{3,}/.test(s.trim()))
+          );
+
+          if (!isSeparator && block.length >= 1) {
+            // 헤더 열 개수 계산 (유효한 셀만 카운트)
+            // 파이프로 split한 후 앞뒤 빈 문자열 제거
+            const cells = block[0].split('|').map(s => s.trim()).filter(s => s.length > 0);
+            const colCount = Math.max(cells.length, 1);
+            const sep = '| ' + Array(colCount).fill('---').join(' | ') + ' |';
+
+            // 첫 줄(헤더) 출력
+            out.push(block[0]);
+            // 자동 구분선 삽입
+            out.push(sep);
+
+            // 나머지 블록 내용 출력(헤더 이후로 이어지는 행들)
+            for (let k = 1; k < block.length; k++) out.push(block[k]);
+
+            i = j;
+            continue;
+          } else if (isSeparator) {
+            // 이미 구분선이 있는 정상적인 테이블인 경우 그대로 출력
+            for (const row of block) {
+              out.push(row);
+            }
+            i = j;
+            continue;
+          }
+        }
+
+        out.push(line);
+        i++;
+      }
+      return out.join('\n');
+    })(markdown);
+
+    return marked.parse(preprocessed);
+  }
+
+  /**
+   * 선택된 템플릿 스타일을 미리보기 영역에 적용
+   * @param {Object} template
+   */
+  applyTemplateStylesToPreview(template) {
+    if (!this.preview || !template) return;
+
+    // 폰트 family 매핑 (Google Fonts 이름과 일치)
+    const fontFamilyMap = {
+      'NanumGothic': "'Nanum Gothic', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+      'NanumMyeongjo': "'Nanum Myeongjo', 'Times New Roman', serif",
+      'NanumPen': "'Nanum Pen Script', 'Brush Script MT', cursive"
+    };
+
+    const family = fontFamilyMap[template.font] || template.font || 'sans-serif';
+
+    // 기본 스타일 적용 - !important로 강제 적용
+    this.preview.style.setProperty('font-family', family, 'important');
+    this.preview.style.setProperty('font-size', `${template.fontSize}px`, 'important');
+    this.preview.style.setProperty('line-height', `${template.lineHeight}`, 'important');
+    this.preview.style.setProperty('color', template.colors?.primary || '#000', 'important');
+
+    // 제목 크기 및 색상, 표 스타일을 동적으로 삽입
+    // <style> 태그는 document.head에 추가해야 함 (preview 내부에 추가하면 [object Object] 오류 발생)
+    const styleId = 'template-preview-styles';
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+
+    // 안전한 색상 값 추출
+    const primaryColor = template.colors?.primary || '#333333';
+    const accentColor = template.colors?.accent || '#428bca';
+    const codeColor = template.colors?.code || '#f5f5f5';
+    const codeTextColor = template.colors?.codeText || '#333333';
+
+    // 템플릿별 특별한 스타일 추가
+    let templateSpecificStyles = '';
+
+    if (template.name === 'business') {
+      templateSpecificStyles = `
+        #${this.preview.id} h1 {
+          border-bottom: 3px solid ${accentColor};
+          padding-bottom: 12px;
+          margin-bottom: 24px;
+          font-weight: 700;
+        }
+        #${this.preview.id} h2 {
+          border-left: 4px solid ${accentColor};
+          padding-left: 12px;
+          margin-top: 28px;
+          font-weight: 600;
+        }
+      `;
+    } else if (template.name === 'creative') {
+      templateSpecificStyles = `
+        #${this.preview.id} h1 {
+          background: linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}11 100%);
+          padding: 16px 20px;
+          border-radius: 8px;
+          border-left: 5px solid ${accentColor};
+          margin: 20px 0;
+        }
+        #${this.preview.id} h2 {
+          color: ${accentColor};
+          margin-top: 24px;
+        }
+        #${this.preview.id} blockquote {
+          border-left: 4px solid ${accentColor} !important;
+          background: ${accentColor}11 !important;
+        }
+      `;
+    } else if (template.name === 'academic') {
+      templateSpecificStyles = `
+        #${this.preview.id} h1 {
+          text-align: center;
+          border-bottom: 2px solid ${primaryColor};
+          padding-bottom: 16px;
+          margin-bottom: 32px;
+          font-weight: 700;
+        }
+        #${this.preview.id} h2 {
+          margin-top: 32px;
+          font-weight: 600;
+        }
+        #${this.preview.id} p {
+          text-align: justify;
+        }
+      `;
+    } else {
+      // clean 템플릿
+      templateSpecificStyles = `
+        #${this.preview.id} h1 {
+          border-bottom: 2px solid ${accentColor};
+          padding-bottom: 8px;
+          margin-bottom: 20px;
+        }
+      `;
+    }
+
+    const headingStyles = `
+      #${this.preview.id} h1 { font-size: ${template.headingSize?.[1] || 24}px; color: ${primaryColor}; }
+      #${this.preview.id} h2 { font-size: ${template.headingSize?.[2] || 20}px; color: ${primaryColor}; }
+      #${this.preview.id} h3 { font-size: ${template.headingSize?.[3] || 18}px; color: ${primaryColor}; }
+      #${this.preview.id} h4 { font-size: ${template.headingSize?.[4] || 16}px; color: ${primaryColor}; }
+      #${this.preview.id} h5 { font-size: ${template.headingSize?.[5] || 14}px; color: ${primaryColor}; }
+      #${this.preview.id} h6 { font-size: ${template.headingSize?.[6] || 12}px; color: ${primaryColor}; }
+    `;
+
+    const tableStyles = `
+      #${this.preview.id} table, #${this.preview.id} .kpdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+      }
+      #${this.preview.id} table th, #${this.preview.id} table td,
+      #${this.preview.id} .kpdf-table th, #${this.preview.id} .kpdf-table td {
+        border: 1px solid rgba(0,0,0,0.12);
+        padding: 10px;
+        text-align: left;
+      }
+      #${this.preview.id} table thead th, #${this.preview.id} .kpdf-table thead th {
+        background: ${codeColor};
+        color: ${codeTextColor};
+        font-weight: 600;
+      }
+      #${this.preview.id} .kpdf-table td {
+        vertical-align: top;
+      }
+    `;
+
+    // 미리보기 패딩 스타일 (템플릿의 여백을 반영)
+    const paddingStyles = `
+      #${this.preview.id} {
+        padding: ${template.margin?.top / 4}px ${template.margin?.right / 4}px ${template.margin?.bottom / 4}px ${template.margin?.left / 4}px;
+      }
+    `;
+
+    styleEl.textContent = headingStyles + tableStyles + templateSpecificStyles + paddingStyles;
   }
 
   /**
