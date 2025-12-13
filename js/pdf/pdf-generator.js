@@ -10,6 +10,7 @@ class PDFGenerator {
     this.fontLoader = new FontLoader();
     this.yPosition = 0;
     this.pageNumber = 1;
+    this.colors = {};
   }
 
   /**
@@ -42,8 +43,18 @@ class PDFGenerator {
       compress: true
     });
 
+    // 템플릿 색상 팔레트 캐싱
+    this.colors = {
+      primary: this.getTemplateColor('primary', '#000000'),
+      secondary: this.getTemplateColor('secondary', '#4a4a4a'),
+      accent: this.getTemplateColor('accent', '#3b82f6'),
+      code: this.getTemplateColor('code', '#f5f5f5'),
+      codeText: this.getTemplateColor('codeText', '#333333')
+    };
+
     // 한글 폰트 로드
     await this.fontLoader.loadFont(this.doc, template.font);
+    this.applyPrimaryTextColor();
 
     // 초기 위치 설정
     this.yPosition = this.currentTemplate.margin.top;
@@ -268,6 +279,10 @@ class PDFGenerator {
     this.doc.setFontSize(fontSize);
     // 한글 폰트는 볼드 스타일이 없으므로 normal 사용
     this.doc.setFont(this.currentTemplate.font, 'normal');
+    const headingColor = (level === 1 && this.currentTemplate.name === 'creative')
+      ? this.colors.accent
+      : this.colors.primary;
+    this.doc.setTextColor(headingColor.r, headingColor.g, headingColor.b);
 
     const maxWidth = this.getContentWidth();
     const lines = this.doc.splitTextToSize(text, maxWidth);
@@ -275,11 +290,12 @@ class PDFGenerator {
     // 크리에이티브 템플릿 H1 배경 박스 그리기
     if (level === 1 && this.currentTemplate.name === 'creative') {
       const accentColor = this.hexToRgb(this.currentTemplate.colors?.accent || '#805ad5');
+      const boxColor = this.blendWithWhite(accentColor, 0.85);
       const boxHeight = (lines.length * fontSize * 1.2) + 20;
       const boxY = this.yPosition - fontSize * 0.8;
 
       // 배경색 (연한 보라색)
-      this.doc.setFillColor(accentColor.r, accentColor.g, accentColor.b, 0.1);
+      this.doc.setFillColor(boxColor.r, boxColor.g, boxColor.b);
       this.doc.roundedRect(
         this.currentTemplate.margin.left - 10,
         boxY,
@@ -336,6 +352,7 @@ class PDFGenerator {
     // 기본 폰트로 복원
     this.doc.setFont(this.currentTemplate.font, 'normal');
     this.doc.setFontSize(this.currentTemplate.fontSize);
+    this.applyPrimaryTextColor();
   }
 
   /**
@@ -348,6 +365,7 @@ class PDFGenerator {
     if (!text.trim()) return;
 
     const maxWidth = this.getContentWidth();
+    this.applyPrimaryTextColor();
     const lines = this.doc.splitTextToSize(text, maxWidth);
     const lineHeight = this.currentTemplate.fontSize * this.currentTemplate.lineHeight;
 
@@ -387,6 +405,7 @@ class PDFGenerator {
     const isOrdered = element.tagName.toLowerCase() === 'ol';
     const items = element.querySelectorAll('li');
     const indent = 20;
+    this.applyPrimaryTextColor();
 
     items.forEach((item, index) => {
       const prefix = isOrdered ? `${index + 1}.` : '•';
@@ -442,7 +461,7 @@ class PDFGenerator {
     if (thead) {
       const headerCells = thead.querySelectorAll('th');
       headerCells.forEach(cell => {
-        headers.push(cell.textContent.trim());
+        headers.push(this.getTableCellText(cell));
       });
     }
 
@@ -453,7 +472,7 @@ class PDFGenerator {
       const cells = row.querySelectorAll('td');
       const rowData = [];
       cells.forEach(cell => {
-        rowData.push(cell.textContent.trim());
+        rowData.push(this.getTableCellText(cell));
       });
       if (rowData.length > 0) {
         rows.push(rowData);
@@ -470,6 +489,12 @@ class PDFGenerator {
       this.addPage();
     }
 
+    const textColor = this.colors.primary || this.getTemplateColor('primary', '#323232');
+    const accentColor = this.colors.accent || this.getTemplateColor('accent', '#805ad5');
+    const headerBg = this.colors.code || this.getTemplateColor('code', '#f5f5f5');
+    const headerText = this.colors.codeText || this.getTemplateColor('codeText', '#333333');
+    const zebra = this.blendWithWhite(headerBg, 0.12);
+
     // AutoTable로 렌더링
     this.doc.autoTable({
       startY: this.yPosition,
@@ -480,22 +505,20 @@ class PDFGenerator {
         font: this.currentTemplate.font,
         fontSize: this.currentTemplate.fontSize - 1,
         cellPadding: 6,
-        lineColor: [180, 180, 180],
+        lineColor: [accentColor.r, accentColor.g, accentColor.b],
         lineWidth: 0.5,
-        textColor: [50, 50, 50],
+        textColor: [textColor.r, textColor.g, textColor.b],
         halign: 'left',
-        valign: 'middle'
+        valign: 'middle',
+        fillColor: null
       },
       headStyles: {
-        fillColor: [240, 240, 240],
-        textColor: [50, 50, 50],
+        fillColor: [headerBg.r, headerBg.g, headerBg.b],
+        textColor: [headerText.r, headerText.g, headerText.b],
         fontStyle: 'bold',
         halign: 'left',
         lineWidth: 0.5,
-        lineColor: [180, 180, 180]
-      },
-      alternateRowStyles: {
-        fillColor: [250, 250, 250]
+        lineColor: [accentColor.r, accentColor.g, accentColor.b]
       },
       margin: {
         left: this.currentTemplate.margin.left,
@@ -514,6 +537,8 @@ class PDFGenerator {
     const code = element.querySelector('code');
     const text = code ? code.textContent : element.textContent;
     const lines = text.split('\n');
+    const codeBg = this.colors.code || this.getTemplateColor('code', '#f5f5f5');
+    const codeTextColor = this.colors.codeText || this.getTemplateColor('codeText', '#333333');
 
     // 배경 계산
     const padding = 10;
@@ -527,7 +552,7 @@ class PDFGenerator {
     }
 
     // 배경 그리기
-    this.doc.setFillColor(245, 245, 245);
+    this.doc.setFillColor(codeBg.r, codeBg.g, codeBg.b);
     this.doc.rect(
       this.currentTemplate.margin.left,
       this.yPosition - padding,
@@ -539,7 +564,7 @@ class PDFGenerator {
     // 코드 텍스트
     this.doc.setFontSize(10);
     this.doc.setFont('courier');
-    this.doc.setTextColor(80, 80, 80);
+    this.doc.setTextColor(codeTextColor.r, codeTextColor.g, codeTextColor.b);
 
     lines.forEach((line) => {
       this.doc.text(
@@ -555,7 +580,7 @@ class PDFGenerator {
     // 폰트 복원
     this.doc.setFont(this.currentTemplate.font, 'normal');
     this.doc.setFontSize(this.currentTemplate.fontSize);
-    this.doc.setTextColor(0, 0, 0);
+    this.applyPrimaryTextColor();
   }
 
   /**
@@ -566,6 +591,10 @@ class PDFGenerator {
     const text = element.textContent.trim();
 
     if (!text) return;
+
+    const accentColor = this.colors.accent || this.getTemplateColor('accent', '#428bca');
+    const quoteBg = this.blendWithWhite(accentColor, 0.85);
+    const quoteText = this.colors.secondary || this.getTemplateColor('secondary', '#4a4a4a');
 
     const maxWidth = this.getContentWidth() - 30;
     const lines = this.doc.splitTextToSize(text, maxWidth);
@@ -578,7 +607,7 @@ class PDFGenerator {
     }
 
     // 왼쪽 바
-    this.doc.setDrawColor(66, 139, 202);
+    this.doc.setDrawColor(accentColor.r, accentColor.g, accentColor.b);
     this.doc.setLineWidth(3);
     this.doc.line(
       this.currentTemplate.margin.left + 10,
@@ -588,7 +617,7 @@ class PDFGenerator {
     );
 
     // 배경
-    this.doc.setFillColor(240, 248, 255);
+    this.doc.setFillColor(quoteBg.r, quoteBg.g, quoteBg.b);
     this.doc.rect(
       this.currentTemplate.margin.left + 15,
       this.yPosition - 5,
@@ -598,7 +627,7 @@ class PDFGenerator {
     );
 
     // 텍스트
-    this.doc.setTextColor(60, 60, 60);
+    this.doc.setTextColor(quoteText.r, quoteText.g, quoteText.b);
     // 한글 폰트는 이탤릭 스타일이 없으므로 normal 사용
     this.doc.setFont(this.currentTemplate.font, 'normal');
 
@@ -615,7 +644,7 @@ class PDFGenerator {
 
     // 폰트 복원
     this.doc.setFont(this.currentTemplate.font, 'normal');
-    this.doc.setTextColor(0, 0, 0);
+    this.applyPrimaryTextColor();
   }
 
   /**
@@ -643,6 +672,7 @@ class PDFGenerator {
     this.doc.addPage();
     this.yPosition = this.currentTemplate.margin.top;
     this.pageNumber++;
+    this.applyPrimaryTextColor();
   }
 
   /**
@@ -678,7 +708,7 @@ class PDFGenerator {
       this.doc.setFontSize(10);
       this.doc.setTextColor(128, 128, 128);
       this.doc.text(pageText, x, y);
-      this.doc.setTextColor(0, 0, 0);
+      this.applyPrimaryTextColor();
     }
   }
 
@@ -814,6 +844,52 @@ class PDFGenerator {
    */
   getPageHeight() {
     return this.doc.internal.pageSize.getHeight();
+  }
+
+  /**
+   * 템플릿 색상 가져오기 (RGB)
+   * @param {string} key - colors 키
+   * @param {string} fallback - HEX 폴백
+   * @returns {{r:number,g:number,b:number}}
+   */
+  getTemplateColor(key, fallback) {
+    const hex = this.currentTemplate?.colors?.[key] || fallback;
+    return this.hexToRgb(hex);
+  }
+
+  /**
+   * 기본 텍스트 색상 적용
+   */
+  applyPrimaryTextColor() {
+    const color = this.colors.primary || this.getTemplateColor('primary', '#000000');
+    this.doc.setTextColor(color.r, color.g, color.b);
+  }
+
+  /**
+   * 색상을 흰색과 블렌딩 (비율 0~1, 1이면 완전 흰색)
+   * @param {{r:number,g:number,b:number}} color
+   * @param {number} ratio
+   * @returns {{r:number,g:number,b:number}}
+   */
+  blendWithWhite(color, ratio = 0.5) {
+    const clamp = (v) => Math.min(255, Math.max(0, v));
+    return {
+      r: clamp(Math.round(color.r + (255 - color.r) * ratio)),
+      g: clamp(Math.round(color.g + (255 - color.g) * ratio)),
+      b: clamp(Math.round(color.b + (255 - color.b) * ratio))
+    };
+  }
+
+  /**
+   * 테이블 셀 텍스트 추출 (줄바꿈/목록 유지)
+   * @param {HTMLElement} cell
+   * @returns {string}
+   */
+  getTableCellText(cell) {
+    if (!cell) return '';
+    // innerText는 <br>, 블록, 목록의 줄바꿈을 유지
+    const text = cell.innerText || cell.textContent || '';
+    return text.trim();
   }
 
   /**

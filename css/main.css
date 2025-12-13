@@ -284,6 +284,26 @@ body {
   @apply bg-white dark:bg-gray-900;
 }
 
+#editor-panel:fullscreen,
+#preview-panel:fullscreen,
+#editor-panel:-webkit-full-screen,
+#preview-panel:-webkit-full-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}
+
+#editor-panel:fullscreen textarea,
+#preview-panel:fullscreen #markdown-preview,
+#editor-panel:-webkit-full-screen textarea,
+#preview-panel:-webkit-full-screen #markdown-preview {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
 /* Responsive Utilities */
 @media (max-width: 1024px) {
   #markdown-editor,
