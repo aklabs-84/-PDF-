@@ -64,7 +64,7 @@ class FontLoader {
     }
 
     try {
-      // 폰트 파일 fetch
+      // 폰트 파일 fetch (일반적인 경우)
       const response = await fetch(fontPath);
 
       if (!response.ok) {
@@ -82,7 +82,21 @@ class FontLoader {
 
       return base64;
     } catch (error) {
-      console.error(`Failed to fetch font: ${fontPath}`, error);
+      // 원격 fetch 실패한 경우(예: CORS, GitHub 파일 뷰어 등),
+      // 페이지에 포함된 임베디드 폰트 맵을 시도해본다.
+      console.warn(`Fetch failed for font: ${fontPath}. Trying embedded fonts if available.`, error);
+
+      try {
+        if (window && window.EMBEDDED_FONTS && window.EMBEDDED_FONTS[fontName]) {
+          const embeddedBase64 = window.EMBEDDED_FONTS[fontName];
+          this.loadedFonts.set(fontName, embeddedBase64);
+          return embeddedBase64;
+        }
+      } catch (e) {
+        // 무시하고 원래 에러를 throw
+      }
+
+      console.error(`Failed to fetch font and no embedded fallback available: ${fontName}`, error);
       throw error;
     }
   }
