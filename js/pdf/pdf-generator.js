@@ -283,6 +283,37 @@ class PDFGenerator {
     const maxWidth = this.getContentWidth();
     const lines = this.doc.splitTextToSize(text, maxWidth);
 
+    // 크리에이티브 템플릿 H1 배경 박스 그리기
+    if (level === 1 && this.currentTemplate.name === 'creative') {
+      const accentColor = this.hexToRgb(this.currentTemplate.colors?.accent || '#805ad5');
+      const boxHeight = (lines.length * fontSize * 1.2) + 20;
+      const boxY = this.yPosition - fontSize * 0.8;
+
+      // 배경색 (연한 보라색)
+      this.doc.setFillColor(accentColor.r, accentColor.g, accentColor.b, 0.1);
+      this.doc.roundedRect(
+        this.currentTemplate.margin.left - 10,
+        boxY,
+        this.getContentWidth() + 20,
+        boxHeight,
+        8,
+        8,
+        'F'
+      );
+
+      // 왼쪽 테두리
+      this.doc.setFillColor(accentColor.r, accentColor.g, accentColor.b);
+      this.doc.rect(
+        this.currentTemplate.margin.left - 10,
+        boxY,
+        5,
+        boxHeight,
+        'F'
+      );
+
+      this.yPosition += 10; // 패딩
+    }
+
     lines.forEach((line, index) => {
       this.doc.text(
         line,
@@ -292,8 +323,12 @@ class PDFGenerator {
       this.yPosition += fontSize * 1.2;
     });
 
-    // H1인 경우 밑줄 추가
-    if (level === 1) {
+    // 크리에이티브 템플릿 H1 하단 패딩
+    if (level === 1 && this.currentTemplate.name === 'creative') {
+      this.yPosition += 10;
+    }
+    // 기타 템플릿 H1인 경우 밑줄 추가
+    else if (level === 1) {
       const lineY = this.yPosition - fontSize * 0.3;
       this.doc.setDrawColor(200, 200, 200);
       this.doc.setLineWidth(0.5);

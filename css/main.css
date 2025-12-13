@@ -49,25 +49,27 @@ body {
   /* font-size와 line-height는 제거하여 템플릿 스타일이 우선 적용되도록 함 */
 }
 
+/* 제목 스타일은 템플릿에서 동적으로 설정됨 */
+/* h1-h6의 기본 font-size, color, border는 제거하여 템플릿 스타일 우선 적용 */
 #markdown-preview h1 {
-  @apply text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white border-b-2 border-gray-200 dark:border-gray-700 pb-2;
+  @apply font-bold mt-6 mb-4;
 }
 
 #markdown-preview h2 {
-  @apply text-2xl font-bold mt-5 mb-3 text-gray-900 dark:text-white;
+  @apply font-bold mt-5 mb-3;
 }
 
 #markdown-preview h3 {
-  @apply text-xl font-bold mt-4 mb-2 text-gray-900 dark:text-white;
+  @apply font-bold mt-4 mb-2;
 }
 
 #markdown-preview h4 {
-  @apply text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white;
+  @apply font-semibold mt-3 mb-2;
 }
 
 #markdown-preview h5,
 #markdown-preview h6 {
-  @apply text-base font-semibold mt-2 mb-2 text-gray-900 dark:text-white;
+  @apply font-semibold mt-2 mb-2;
 }
 
 #markdown-preview p {
