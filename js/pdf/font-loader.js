@@ -82,10 +82,26 @@ class FontLoader {
 
       return base64;
     } catch (error) {
-      // 원격 fetch 실패한 경우(예: CORS, GitHub 파일 뷰어 등),
-      // 페이지에 포함된 임베디드 폰트 맵을 시도해본다.
-      console.warn(`Fetch failed for font: ${fontPath}. Trying embedded fonts if available.`, error);
+      // 원격 fetch 실패한 경우 — 여러 폴백 전략 시도:
+      // 1) GitHub raw URL에서 가져오기
+      // 2) 페이지에 포함된 임베디드 폰트 맵(window.EMBEDDED_FONTS)
+      console.warn(`Fetch failed for font: ${fontPath}. Trying raw.githubusercontent and embedded fonts as fallbacks.`, error);
 
+      // 1) raw.githubusercontent 경로 시도
+      try {
+        const remoteRawUrl = `https://raw.githubusercontent.com/aklabs-84/-PDF-/main/${fontPath}`;
+        const resp2 = await fetch(remoteRawUrl);
+        if (resp2.ok) {
+          const arrayBuffer2 = await resp2.arrayBuffer();
+          const base642 = this.arrayBufferToBase64(arrayBuffer2);
+          this.loadedFonts.set(fontName, base642);
+          return base642;
+        }
+      } catch (e) {
+        // 무시하고 다음 폴백으로 진행
+      }
+
+      // 2) 페이지에 포함된 EMBEDDED_FONTS 확인
       try {
         if (window && window.EMBEDDED_FONTS && window.EMBEDDED_FONTS[fontName]) {
           const embeddedBase64 = window.EMBEDDED_FONTS[fontName];
@@ -93,10 +109,10 @@ class FontLoader {
           return embeddedBase64;
         }
       } catch (e) {
-        // 무시하고 원래 에러를 throw
+        // 무시
       }
 
-      console.error(`Failed to fetch font and no embedded fallback available: ${fontName}`, error);
+      console.error(`Failed to fetch font and no fallback available: ${fontName}`, error);
       throw error;
     }
   }
