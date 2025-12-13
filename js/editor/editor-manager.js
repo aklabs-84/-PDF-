@@ -209,6 +209,16 @@ class EditorManager {
   }
 
   /**
+   * 이모지 제거 (PDF와 동일하게 표시하기 위함)
+   * @param {string} text - 텍스트
+   * @returns {string} 이모지가 제거된 텍스트
+   */
+  removeEmojis(text) {
+    // 이모지 유니코드 범위 제거
+    return text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F910}-\u{1F96B}]|[\u{1F980}-\u{1F9E0}]|[\u{FE00}-\u{FE0F}]|[\u{200D}]|[\u{E0020}-\u{E007F}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]|[\u{2B50}]|[\u{2B55}]/gu, '');
+  }
+
+  /**
    * 미리보기 업데이트
    */
   updatePreview() {
@@ -227,7 +237,9 @@ class EditorManager {
 
     // 마크다운 모드
     try {
-      const html = this.parseMarkdown(content);
+      // PDF와 동일하게 표시하기 위해 이모지 제거
+      const contentWithoutEmojis = this.removeEmojis(content);
+      const html = this.parseMarkdown(contentWithoutEmojis);
 
       // HTML 문자열인지 확인
       if (typeof html !== 'string') {
@@ -268,8 +280,11 @@ class EditorManager {
    * @param {string} content - 일반 텍스트 콘텐츠
    */
   updatePlainTextPreview(content) {
+    // PDF와 동일하게 표시하기 위해 이모지 제거
+    const contentWithoutEmojis = this.removeEmojis(content);
+
     // HTML 이스케이프 처리
-    const escapedContent = content
+    const escapedContent = contentWithoutEmojis
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')

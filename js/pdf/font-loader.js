@@ -125,19 +125,14 @@ class FontLoader {
    */
   addFontToDoc(doc, fontName, fontData) {
     try {
-      console.log(`Adding font to PDF: ${fontName}, data length: ${fontData?.length || 0}`);
-
       // VFS에 폰트 파일 추가
       doc.addFileToVFS(`${fontName}.ttf`, fontData);
-      console.log(`Font added to VFS: ${fontName}.ttf`);
 
       // 폰트 등록
       doc.addFont(`${fontName}.ttf`, fontName, 'normal');
-      console.log(`Font registered: ${fontName}`);
 
       // 기본 폰트로 설정
       doc.setFont(fontName);
-      console.log(`Font set as default: ${fontName}`);
     } catch (error) {
       console.error(`Failed to add font to document: ${fontName}`, error);
       throw error;

@@ -28,14 +28,6 @@ class PDFGenerator {
     this.currentTemplate = template;
     this.pageSettings = this.getDefaultPageSettings(settings);
 
-    // 디버깅: 템플릿 정보 출력
-    console.log('PDF Generation - Template Info:', {
-      name: template.name,
-      font: template.font,
-      fontSize: template.fontSize,
-      lineHeight: template.lineHeight
-    });
-
     // jsPDF 인스턴스 생성 (UMD 빌드 지원)
     const jsPDFConstructor = window.jspdf?.jsPDF || window.jsPDF;
 
@@ -51,9 +43,7 @@ class PDFGenerator {
     });
 
     // 한글 폰트 로드
-    console.log('Loading font:', template.font);
     await this.fontLoader.loadFont(this.doc, template.font);
-    console.log('Font loaded successfully:', template.font);
 
     // 초기 위치 설정
     this.yPosition = this.currentTemplate.margin.top;
@@ -277,7 +267,6 @@ class PDFGenerator {
 
     this.doc.setFontSize(fontSize);
     // 한글 폰트는 볼드 스타일이 없으므로 normal 사용
-    console.log(`Setting font for H${level}:`, this.currentTemplate.font);
     this.doc.setFont(this.currentTemplate.font, 'normal');
 
     const maxWidth = this.getContentWidth();
