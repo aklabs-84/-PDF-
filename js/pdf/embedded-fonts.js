@@ -27,4 +27,7 @@ window.EMBEDDED_FONTS = window.EMBEDDED_FONTS || {
   // 'NanumGothic': 'AAEAAAALAIAAAwAwT1MvM...'
 };
 
-export default window.EMBEDDED_FONTS;
+// Note: do NOT use ES module export here because this file is included
+// via a normal <script> tag in index.html. Keeping the global
+// `window.EMBEDDED_FONTS` allows `font-loader.js` to access embedded
+// Base64 font data as a fallback.
