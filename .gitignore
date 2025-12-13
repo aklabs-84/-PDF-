@@ -65,3 +65,8 @@ build/
 tmp/
 temp/
 *.tmp
+
+# Test files
+*-test-*.png
+*-test-*.jpg
+screenshot*.png
