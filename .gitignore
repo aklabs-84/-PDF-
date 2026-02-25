@@ -70,3 +70,6 @@ temp/
 *-test-*.png
 *-test-*.jpg
 screenshot*.png
+
+# Project Local Documentation (Issue & Log tracking)
+docs/

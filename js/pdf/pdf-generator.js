@@ -61,7 +61,7 @@ class PDFGenerator {
     this.pageNumber = 1;
 
     // 텍스트 모드 확인 (마크다운 문법이 없으면 일반 텍스트로 처리)
-    const isPlainText = settings.plainTextMode || !this.hasMarkdownSyntax(content);
+    const isPlainText = !this.hasMarkdownSyntax(content);
 
     if (isPlainText) {
       // 일반 텍스트 렌더링

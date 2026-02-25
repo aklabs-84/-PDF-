@@ -86,20 +86,70 @@ class App {
       this.editorManager.markdownHelper.italic();
     });
 
-    window.addEventListener('markdown-heading', () => {
+    window.addEventListener('markdown-strikethrough', () => {
+      this.editorManager.markdownHelper.strikethrough();
+    });
+
+    window.addEventListener('markdown-heading1', () => {
       this.editorManager.markdownHelper.heading(1);
+    });
+
+    window.addEventListener('markdown-heading2', () => {
+      this.editorManager.markdownHelper.heading(2);
+    });
+
+    window.addEventListener('markdown-heading3', () => {
+      this.editorManager.markdownHelper.heading(3);
+    });
+
+    window.addEventListener('markdown-quote', () => {
+      this.editorManager.markdownHelper.quote();
+    });
+
+    window.addEventListener('markdown-hr', () => {
+      this.editorManager.markdownHelper.horizontalRule();
     });
 
     window.addEventListener('markdown-link', () => {
       this.editorManager.insertLink();
     });
 
+    window.addEventListener('markdown-image', () => {
+      this.editorManager.markdownHelper.image();
+    });
+
     window.addEventListener('markdown-list', () => {
       this.editorManager.markdownHelper.unorderedList();
     });
 
+    window.addEventListener('markdown-check-list', () => {
+      this.editorManager.markdownHelper.checkList();
+    });
+
+    window.addEventListener('markdown-table', () => {
+      this.editorManager.markdownHelper.table();
+    });
+
     window.addEventListener('markdown-code', () => {
       this.editorManager.markdownHelper.codeBlock();
+    });
+
+    // 텍스트 정리 (Smart Format)
+    window.addEventListener('format-text', () => {
+      if (this.editorManager && typeof this.editorManager.formatText === 'function') {
+        this.editorManager.formatText();
+      }
+    });
+
+    // 본문 전체 복사
+    window.addEventListener('copy-all', () => {
+      const content = this.editorManager.getMarkdown();
+      navigator.clipboard.writeText(content).then(() => {
+        this.uiManager.showToast('success', '마크다운 내용이 전체 복사되었습니다.');
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        this.uiManager.showToast('error', '텍스트 복사에 실패했습니다.');
+      });
     });
   }
 
@@ -253,9 +303,7 @@ class App {
     try {
       const pdfs = [];
       const template = this.templateEngine.getActiveTemplate();
-      const settings = {
-        plainTextMode: this.uiManager.getPlainTextMode()
-      };
+      const settings = {};
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -312,10 +360,8 @@ class App {
         throw new Error('템플릿을 불러올 수 없습니다.');
       }
 
-      // PDF 생성 (텍스트 모드 설정 전달)
-      const settings = {
-        plainTextMode: this.uiManager.getPlainTextMode()
-      };
+      // PDF 생성
+      const settings = {};
       const doc = await this.pdfGenerator.generate(content, template, settings);
 
       // 파일명 생성

@@ -6,7 +6,7 @@ class UIManager {
   constructor() {
     this.modalManager = new ModalManager();
     this.currentTheme = 'light';
-    this.plainTextMode = false; // 기본은 마크다운 모드
+    this.currentFontSize = 16; // 기본 글꼴 크기
   }
 
   /**
@@ -26,30 +26,9 @@ class UIManager {
    */
   loadSettings() {
     const settings = StorageManager.getSettings();
-    if (settings.plainTextMode) {
-      this.plainTextMode = settings.plainTextMode;
-      const modeLabel = document.getElementById('mode-label');
-      if (modeLabel) {
-        modeLabel.textContent = this.plainTextMode ? '일반 텍스트' : '마크다운';
-      }
-      // 마크다운 버튼 상태 설정
-      if (this.plainTextMode) {
-        setTimeout(() => {
-          const markdownButtons = document.querySelectorAll('#bold-btn, #italic-btn, #heading-btn, #link-btn, #list-btn, #code-btn');
-          markdownButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-          });
-        }, 100);
-      }
-
-      // EditorManager에 초기 모드 전달
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('mode-changed', {
-          detail: { plainTextMode: this.plainTextMode }
-        }));
-      }, 200);
+    if (settings.fontSize) {
+      this.currentFontSize = settings.fontSize;
+      this.applyFontSize();
     }
   }
 
@@ -121,6 +100,31 @@ class UIManager {
       });
     }
 
+    // 동적 컨트롤 삽입 (에디터 전체 보기 및 프리뷰 영역 헤더)
+    const editorHeader = document.getElementById('fullscreen-editor-btn')?.parentElement;
+    if (editorHeader && !document.getElementById('header-copy-all-btn')) {
+      const copyBtnHtml = `
+        <button id="header-copy-all-btn" class="p-1 mr-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="마크다운 전체 복사">
+          <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </button>
+      `;
+      document.getElementById('fullscreen-editor-btn').insertAdjacentHTML('beforebegin', copyBtnHtml);
+      document.getElementById('header-copy-all-btn').addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('copy-all'));
+      });
+    }
+
+    const previewHeader = document.getElementById('fullscreen-preview-btn')?.parentElement;
+    if (previewHeader && !document.getElementById('header-help-btn')) {
+      const helpBtnHtml = `
+        <button id="header-help-btn" class="p-1 mr-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="도움말">
+          <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+      `;
+      document.getElementById('fullscreen-preview-btn').insertAdjacentHTML('beforebegin', helpBtnHtml);
+      document.getElementById('header-help-btn').addEventListener('click', () => this.showHelp());
+    }
+
     // 파일 업로드
     const uploadBtn = document.getElementById('upload-file-btn');
     if (uploadBtn) {
@@ -139,6 +143,14 @@ class UIManager {
 
     // 마크다운 도구
     this.setupMarkdownButtons();
+    
+    // 텍스트 정리 (새로 추가됨)
+    const formatBtn = document.getElementById('format-text-btn');
+    if (formatBtn) {
+      formatBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('format-text'));
+      });
+    }
 
     // 템플릿 선택
     const templateBtn = document.getElementById('template-btn');
@@ -146,11 +158,29 @@ class UIManager {
       templateBtn.addEventListener('click', () => this.showTemplateSelector());
     }
 
-    // PDF 변환
-    const exportBtn = document.getElementById('export-pdf-btn');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', () => {
+    // PDF 변환 및 Export 옵션
+    const exportPdfBtn = document.getElementById('export-pdf-drop-btn');
+    if (exportPdfBtn) {
+      exportPdfBtn.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('export-pdf'));
+      });
+    }
+
+    const exportMdBtn = document.getElementById('export-md-btn');
+    if (exportMdBtn) {
+      exportMdBtn.addEventListener('click', () => {
+        if (window.app && typeof window.app.exportMarkdown === 'function') {
+          window.app.exportMarkdown();
+        }
+      });
+    }
+
+    const exportHtmlBtn = document.getElementById('export-html-btn');
+    if (exportHtmlBtn) {
+      exportHtmlBtn.addEventListener('click', () => {
+        if (window.app && typeof window.app.exportHTML === 'function') {
+          window.app.exportHTML();
+        }
       });
     }
 
@@ -166,10 +196,23 @@ class UIManager {
       helpBtn.addEventListener('click', () => this.showHelp());
     }
 
-    // 모드 토글
-    const modeToggleBtn = document.getElementById('mode-toggle-btn');
-    if (modeToggleBtn) {
-      modeToggleBtn.addEventListener('click', () => this.toggleMode());
+    // 폰트 크기 변경
+    const fontPlusBtn = document.getElementById('font-plus-btn');
+    if (fontPlusBtn) {
+      fontPlusBtn.addEventListener('click', () => this.changeFontSize(2));
+    }
+
+    const fontMinusBtn = document.getElementById('font-minus-btn');
+    if (fontMinusBtn) {
+      fontMinusBtn.addEventListener('click', () => this.changeFontSize(-2));
+    }
+
+    // 본문 전체 복사 버튼
+    const copyAllBtn = document.getElementById('copy-all-btn');
+    if (copyAllBtn) {
+      copyAllBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('copy-all'));
+      });
     }
 
     // 전체화면 버튼
@@ -198,9 +241,17 @@ class UIManager {
     const buttons = {
       'bold-btn': () => window.dispatchEvent(new CustomEvent('markdown-bold')),
       'italic-btn': () => window.dispatchEvent(new CustomEvent('markdown-italic')),
-      'heading-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading')),
+      'strikethrough-btn': () => window.dispatchEvent(new CustomEvent('markdown-strikethrough')),
+      'heading1-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading1')),
+      'heading2-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading2')),
+      'heading3-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading3')),
+      'quote-btn': () => window.dispatchEvent(new CustomEvent('markdown-quote')),
+      'hr-btn': () => window.dispatchEvent(new CustomEvent('markdown-hr')),
       'link-btn': () => window.dispatchEvent(new CustomEvent('markdown-link')),
+      'image-btn': () => window.dispatchEvent(new CustomEvent('markdown-image')),
       'list-btn': () => window.dispatchEvent(new CustomEvent('markdown-list')),
+      'check-list-btn': () => window.dispatchEvent(new CustomEvent('markdown-check-list')),
+      'table-btn': () => window.dispatchEvent(new CustomEvent('markdown-table')),
       'code-btn': () => window.dispatchEvent(new CustomEvent('markdown-code'))
     };
 
@@ -453,31 +504,55 @@ class UIManager {
    */
   showHelp() {
     const content = `
-      <div class="prose dark:prose-invert max-w-none">
-        <h4>단축키</h4>
-        <table class="w-full">
-          <tr><td><kbd>Ctrl/Cmd + S</kbd></td><td>문서 저장</td></tr>
-          <tr><td><kbd>Ctrl/Cmd + B</kbd></td><td>굵게</td></tr>
-          <tr><td><kbd>Ctrl/Cmd + I</kbd></td><td>기울임</td></tr>
-          <tr><td><kbd>Ctrl/Cmd + K</kbd></td><td>링크 삽입</td></tr>
-          <tr><td><kbd>Ctrl/Cmd + P</kbd></td><td>PDF 변환</td></tr>
-          <tr><td><kbd>Tab</kbd></td><td>들여쓰기</td></tr>
-          <tr><td><kbd>Shift + Tab</kbd></td><td>내어쓰기</td></tr>
+      <div class="text-gray-800 dark:text-gray-200">
+        <h4 class="font-bold text-lg mb-3 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">단축키</h4>
+        <table class="w-full text-sm mb-6 border-collapse">
+          <tbody>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2 w-1/3"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + S</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">문서 저장</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + B</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">굵게</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + I</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">기울임</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + K</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">링크 삽입</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + P</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">PDF 변환</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Tab</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">들여쓰기</td>
+            </tr>
+            <tr>
+              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Shift + Tab</kbd></td>
+              <td class="py-2 text-gray-600 dark:text-gray-400">내어쓰기</td>
+            </tr>
+          </tbody>
         </table>
 
-        <h4 class="mt-6">마크다운 문법</h4>
-        <ul>
-          <li><code># 제목</code> - 제목 (H1~H6)</li>
-          <li><code>**굵게**</code> - 굵은 글씨</li>
-          <li><code>_기울임_</code> - 기울임</li>
-          <li><code>\`코드\`</code> - 인라인 코드</li>
-          <li><code>- 항목</code> - 목록</li>
-          <li><code>[링크](URL)</code> - 링크</li>
-          <li><code>![이미지](URL)</code> - 이미지</li>
+        <h4 class="font-bold text-lg mb-3 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">마크다운 문법</h4>
+        <ul class="list-disc pl-5 space-y-2 mb-6 text-sm text-gray-600 dark:text-gray-400">
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"># 제목 1</code> - 가장 큰 제목 (선택한 문서 템플릿에 따라 아래쪽에 밑줄 같은 전용 스타일이 입혀집니다.)</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">## 제목 2</code> - 중간 제목</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">**굵게**</code> - 굵은 글씨</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">_기울임_</code> - 기울임</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">\`코드\`</code> - 인라인 코드</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">- 항목</code> - 목록</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">[링크](URL)</code> - 링크</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">![이미지](URL)</code> - 이미지</li>
         </ul>
 
-        <h4 class="mt-6">문의</h4>
-        <p>문제가 발생하거나 제안사항이 있으시면 GitHub 이슈를 등록해주세요.</p>
+        <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">문의</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">문제가 발생하거나 제안사항이 있으시면 GitHub 이슈를 등록해주세요.</p>
       </div>
     `;
 
@@ -533,51 +608,29 @@ class UIManager {
   }
 
   /**
-   * 텍스트 모드 토글 (마크다운 <-> 일반 텍스트)
+   * 폰트 크기 변경
+   * @param {number} delta - 변경할 폰트 크기 증감치
    */
-  toggleMode() {
-    this.plainTextMode = !this.plainTextMode;
-    const modeLabel = document.getElementById('mode-label');
-    const markdownButtons = document.querySelectorAll('#bold-btn, #italic-btn, #heading-btn, #link-btn, #list-btn, #code-btn');
-
-    if (this.plainTextMode) {
-      // 일반 텍스트 모드
-      modeLabel.textContent = '일반 텍스트';
-      // 마크다운 버튼 비활성화
-      markdownButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'not-allowed';
-      });
-      this.showToast('info', '일반 텍스트 모드로 전환되었습니다.', 2000);
-    } else {
-      // 마크다운 모드
-      modeLabel.textContent = '마크다운';
-      // 마크다운 버튼 활성화
-      markdownButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-      });
-      this.showToast('info', '마크다운 모드로 전환되었습니다.', 2000);
-    }
-
-    // EditorManager에 모드 변경 알림
-    window.dispatchEvent(new CustomEvent('mode-changed', {
-      detail: { plainTextMode: this.plainTextMode }
-    }));
+  changeFontSize(delta) {
+    this.currentFontSize = Math.max(12, Math.min(32, this.currentFontSize + delta));
+    this.applyFontSize();
+    this.showToast('info', `글꼴 크기: ${this.currentFontSize}px`, 1500);
 
     // 설정 저장
     const settings = StorageManager.getSettings();
-    settings.plainTextMode = this.plainTextMode;
+    settings.fontSize = this.currentFontSize;
     StorageManager.saveSettings(settings);
   }
 
   /**
-   * 텍스트 모드 가져오기
-   * @returns {boolean} 일반 텍스트 모드 여부
+   * 도큐먼트에 폰트 크기 적용
    */
-  getPlainTextMode() {
-    return this.plainTextMode;
+  applyFontSize() {
+    const editor = document.getElementById('markdown-editor');
+    const preview = document.getElementById('markdown-preview');
+    
+    // 에디터와 미리보기 모두에 폰트 크기 적용
+    if (editor) editor.style.fontSize = `${this.currentFontSize}px`;
+    if (preview) preview.style.fontSize = `${this.currentFontSize}px`;
   }
 }

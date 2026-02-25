@@ -7,12 +7,12 @@ class EditorManager {
     this.textarea = null;
     this.preview = null;
     this.markdownHelper = null;
+    this.pasteHandler = null; // Smart paste handler 
     this.autoSaveInterval = 30000; // 30초
     this.autoSaveTimer = null;
     this.currentDocument = null;
     this.isModified = false;
     this.updatePreviewDebounced = null;
-    this.plainTextMode = false; // 일반 텍스트 모드 여부
   }
 
   /**
@@ -29,8 +29,9 @@ class EditorManager {
       return;
     }
 
-    // MarkdownHelper 초기화
+    // MarkdownHelper & PasteHandler 초기화
     this.markdownHelper = new MarkdownHelper(this.textarea);
+    this.pasteHandler = new PasteHandler(this.textarea);
 
     // 이벤트 리스너 설정
     this.setupEventListeners();
@@ -90,11 +91,6 @@ class EditorManager {
       this.handlePaste(e);
     });
 
-    // 모드 변경 이벤트
-    window.addEventListener('mode-changed', (e) => {
-      this.setPlainTextMode(e.detail.plainTextMode);
-    });
-
     // 템플릿 변경 이벤트 수신: 미리보기 갱신
     window.addEventListener('template-changed', () => {
       // 즉시가 아닌 디바운스된 갱신 사용
@@ -145,8 +141,18 @@ class EditorManager {
    * @param {ClipboardEvent} e - 붙여넣기 이벤트
    */
   handlePaste(e) {
-    // HTML 붙여넣기 처리 (향후 구현 가능)
-    // 현재는 기본 동작 허용
+    if (this.pasteHandler) {
+      this.pasteHandler.handlePaste(e);
+    }
+  }
+
+  /**
+   * 텍스트 형식 자동 정리 (빈 줄, 들여쓰기)
+   */
+  formatText() {
+    if (this.pasteHandler) {
+      this.pasteHandler.formatText();
+    }
   }
 
   /**
@@ -229,12 +235,6 @@ class EditorManager {
       return;
     }
 
-    // 일반 텍스트 모드
-    if (this.plainTextMode) {
-      this.updatePlainTextPreview(content);
-      return;
-    }
-
     // 마크다운 모드
     try {
       // PDF와 동일하게 표시하기 위해 이모지 제거
@@ -275,45 +275,7 @@ class EditorManager {
     }
   }
 
-  /**
-   * 일반 텍스트 미리보기 업데이트
-   * @param {string} content - 일반 텍스트 콘텐츠
-   */
-  updatePlainTextPreview(content) {
-    // PDF와 동일하게 표시하기 위해 이모지 제거
-    const contentWithoutEmojis = this.removeEmojis(content);
 
-    // HTML 이스케이프 처리
-    const escapedContent = contentWithoutEmojis
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-
-    // 줄바꿈을 <br>로 변환하고, 문단 분리 처리
-    const paragraphs = escapedContent.split(/\n\n+/);
-    const html = paragraphs
-      .map(para => {
-        if (!para.trim()) return '';
-        const lines = para.split('\n').join('<br>');
-        return `<p class="mb-4">${lines}</p>`;
-      })
-      .filter(p => p)
-      .join('');
-
-    this.preview.innerHTML = html || '<p class="text-gray-400">미리보기가 여기에 표시됩니다...</p>';
-
-    // Apply template styles to plain text preview
-    try {
-      const template = window.app && window.app.templateEngine ? window.app.templateEngine.getActiveTemplate() : null;
-      if (template) {
-        this.applyTemplateStylesToPreview(template);
-      }
-    } catch (e) {
-      console.error('Failed to apply template styles to plain text preview:', e);
-    }
-  }
 
   /**
    * 마크다운 파싱
@@ -422,9 +384,26 @@ class EditorManager {
 
     // 기본 스타일 적용 - !important로 강제 적용
     this.preview.style.setProperty('font-family', family, 'important');
-    this.preview.style.setProperty('font-size', `${template.fontSize}px`, 'important');
     this.preview.style.setProperty('line-height', `${template.lineHeight}`, 'important');
-    this.preview.style.setProperty('color', template.colors?.primary || '#000', 'important');
+    
+    // 다크모드 감지
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    // 안전한 색상 값 추출 (다크모드일 경우 테마 색상 반전 처리 또는 기본값 변경)
+    let primaryColor = template.colors?.primary;
+    let accentColor = template.colors?.accent || '#428bca';
+    let codeColor = template.colors?.code || '#f5f5f5';
+    let codeTextColor = template.colors?.codeText || '#333333';
+    
+    if (isDarkMode) {
+      primaryColor = primaryColor || '#f9fafb'; // 기본 다크모드 텍스트 색상
+      codeColor = '#374151'; // 다크모드 코드 배경
+      codeTextColor = '#e5e7eb'; // 다크모드 코드 텍스트
+    } else {
+      primaryColor = primaryColor || '#333333'; // 기본 라이트모드 텍스트 색상
+    }
+
+    this.preview.style.setProperty('color', primaryColor, 'important');
 
     // 제목 크기 및 색상, 표 스타일을 동적으로 삽입
     // <style> 태그는 document.head에 추가해야 함 (preview 내부에 추가하면 [object Object] 오류 발생)
@@ -435,12 +414,6 @@ class EditorManager {
       styleEl.id = styleId;
       document.head.appendChild(styleEl);
     }
-
-    // 안전한 색상 값 추출
-    const primaryColor = template.colors?.primary || '#333333';
-    const accentColor = template.colors?.accent || '#428bca';
-    const codeColor = template.colors?.code || '#f5f5f5';
-    const codeTextColor = template.colors?.codeText || '#333333';
 
     // 템플릿별 특별한 스타일 추가
     let templateSpecificStyles = '';
@@ -885,68 +858,4 @@ function hello() {
     }
   }
 
-  /**
-   * 텍스트 모드 설정
-   * @param {boolean} isPlainText - 일반 텍스트 모드 여부
-   */
-  setPlainTextMode(isPlainText) {
-    this.plainTextMode = isPlainText;
-    this.updatePreview();
-    this.updateEditorTitle();
-    this.updatePreviewTitle();
-    this.updateEditorPlaceholder();
-  }
-
-  /**
-   * 에디터 제목 업데이트
-   */
-  updateEditorTitle() {
-    const editorTitle = document.getElementById('editor-title');
-    if (editorTitle) {
-      editorTitle.textContent = this.plainTextMode ? '텍스트 에디터' : '마크다운 에디터';
-    }
-  }
-
-  /**
-   * 미리보기 제목 업데이트
-   */
-  updatePreviewTitle() {
-    const previewTitle = document.getElementById('preview-title');
-    if (previewTitle) {
-      previewTitle.textContent = this.plainTextMode ? '텍스트 미리보기' : '마크다운 미리보기';
-    }
-  }
-
-  /**
-   * 에디터 placeholder 업데이트
-   */
-  updateEditorPlaceholder() {
-    if (!this.textarea) return;
-
-    if (this.plainTextMode) {
-      // 일반 텍스트 모드 placeholder
-      this.textarea.placeholder = `여기에 텍스트를 입력하세요...
-
-제목 1번글 PDF 변환기를 사용해주셔서 감사합니다.
-
-기능
-
-실시간 미리보기: 원쪽에 마크다운을 입력하면 오른쪽에서 실시간으로 미리보기를 확인할 수 있습니다.
-자동 저장: 30초마다 자동으로 저장됩니다.
-PDF 변환: 작성한 문서를 아름다운 PDF로 변환할 수 있습니다.`;
-    } else {
-      // 마크다운 모드 placeholder
-      this.textarea.placeholder = `여기에 마크다운을 입력하세요...
-
-# 제목 1
-## 제목 2
-
-**굵은 글씨** _기울임_ \`코드\`
-
-- 목록 1
-- 목록 2
-
-[링크](https://example.com)`;
-    }
-  }
 }
