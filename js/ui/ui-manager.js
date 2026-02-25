@@ -190,6 +190,12 @@ class UIManager {
       documentsBtn.addEventListener('click', () => this.showDocumentsList());
     }
 
+    // 학습 가이드
+    const guideBtn = document.getElementById('guide-btn');
+    if (guideBtn) {
+      guideBtn.addEventListener('click', () => this.showGuide());
+    }
+
     // 도움말
     const helpBtn = document.getElementById('help-btn');
     if (helpBtn) {
@@ -416,6 +422,121 @@ class UIManager {
         });
       });
     });
+  }
+
+  /**
+   * 학습 가이드 표시
+   */
+  showGuide() {
+    const currentContent = window.app.editorManager.getContent();
+    
+    // 내용이 있는 경우 덮어쓰기 경고
+    if (currentContent.trim() && currentContent.length > 50) {
+      this.modalManager.confirm('현재 작성 중인 내용이 지워지고 가이드 문서가 로드됩니다. 계속하시겠습니까?', () => {
+        this.loadGuideContent();
+      });
+    } else {
+      this.loadGuideContent();
+    }
+  }
+
+  /**
+   * 가이드 콘텐츠 로드
+   */
+  loadGuideContent() {
+    const guideContent = `# 🚀 마크다운 노트 완벽 활용 가이드
+
+환영합니다! 이 문서는 마크다운 노트의 모든 기능을 직접 체험해 볼 수 있는 튜토리얼입니다.
+좌측 에디터의 내용을 자유롭게 수정하면서 우측 미리보기가 어떻게 변하는지 알아보고 기능을 숙지하세요!
+
+---
+
+## 1. 🌟 기본 텍스트 서식
+
+마우스 사용 없이도 에디터 빈 줄에서 \`/\` (슬래시)를 입력하여 **마법의 드롭다운 메뉴**를 호출할 수 있습니다.
+키보드 방향키와 커맨드로 빠르게 서식을 지정하세요.
+
+- **굵은 글씨**: \`Ctrl/Cmd + B\`를 누르거나 툴바의 **B**를 클릭하세요. -> **이것은 굵은 글씨입니다.**
+- *기울임*: \`Ctrl/Cmd + I\`를 누르거나 툴바의 *I*를 클릭하세요. -> *이것은 기울임 글씨입니다.*
+- ~~취소선~~: 툴바의 'S' 버튼을 클릭하세요. -> ~~이것은 취소선입니다.~~
+- \`인라인 코드\`: 백틱(\`)으로 텍스트를 감싸세요.
+- [링크](https://litt.ly/aklabs): 툴바의 '링크' 버튼을 클릭하세요.
+
+---
+
+## 2. ✅ 스마트 할 일 목록 (Checklist)
+
+할 일 목록을 만들고 미리보기 창에서 직접 클릭하여 완료 처리해 보세요! 완료 시 취소선이 시각적으로 예쁘게 적용됩니다.
+
+- [x] 장보기 (미리보기에서 클릭 완료됨)
+- [ ] 마크다운 노트 가이드 읽기
+- [ ] 슬래시(/) 명령어 호출하기
+
+---
+
+## 3. 🧮 수학 수식 (KaTeX)
+
+복잡한 수식을 LaTeX 문법으로 아름답게 렌더링 할 수 있습니다. 빈 줄에서 \`/\`를 누르고 **'수식 (KaTeX)'**을 선택해 보세요.
+
+$$
+  E = mc^2
+$$
+
+아래처럼 복잡한 렌더링도 가능합니다.
+
+$$
+  f(x) = \\int_{-\\infty}^\\infty \\hat f(\\xi)\\,e^{2 \\pi i \\xi x} \\,d\\xi
+$$
+
+---
+
+## 4. 📊 다이어그램 (Mermaid)
+
+텍스트로 그리는 차트! 마우스 없이 프로그래밍 하듯 순서도를 작성할 수 있습니다. \`/\`를 누르고 **'다이어그램 (Mermaid)'**을 선택하세요.
+
+\`\`\`mermaid
+graph TD
+    A[시작] --> B{결정}
+    B -- 예 --> C[마크다운 배우기]
+    C --> D[마스터!]
+    B -- 아니요 --> E[명령어 입력하기]
+    E --> C
+\`\`\`
+
+---
+
+## 5. 💻 코드 블록 (Syntax Highlighting)
+
+개발자들을 위한 강력한 문법 하이라이팅을 지원합니다.
+
+\`\`\`javascript
+// 간단한 함수 작성하기
+function greet(name) {
+  console.log(\`안녕하세요, \${name}님!\`);
+  return true;
+}
+
+greet("마크다운");
+\`\`\`
+
+---
+
+## 6. 📝 표 (Tables)
+
+데이터를 깔끔하게 정리하는 테이블입니다. 빈 줄에서 \`/\`를 치고 표를 삽입하세요.
+
+| 기능 | 목적 | 난이도 |
+| :--- | :--- | :---: |
+| 스마트 붙여넣기 | 자동 변환 | ⭐ |
+| 슬래시 명령어 | 빠른 마크업 | ⭐⭐ |
+| **다이어그램** | **시각화** | ⭐⭐⭐ |
+
+---
+
+> 💡 **Tip:** 화면 상단의 전체화면 아이콘을 눌러 에디터나 미리보기에 집중할 수 있습니다! 다 읽으셨다면 빈 줄에서 \`/\`를 입력해 나만의 문서를 만들어 보세요.`;
+
+    window.app.editorManager.setContent(guideContent);
+    this.showToast('success', '학습 가이드가 성공적으로 로드되었습니다.');
   }
 
   /**

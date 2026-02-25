@@ -72,4 +72,4 @@ temp/
 screenshot*.png
 
 # Project Local Documentation (Issue & Log tracking)
-docs/
+# docs/

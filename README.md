@@ -75,4 +75,7 @@ http://localhost:8080
 - **Diagram Rendering**: Mermaid.js
 
 ---
-Made with ❤️ by Korean PDF Converter Team (Pivoted to Markdown Note)
+
+## 🔗 관련 링크 (Links)
+- **Aklabs (아크랩스)**: [https://litt.ly/aklabs](https://litt.ly/aklabs) - 아크랩스의 다양한 프로젝트와 소식을 확인해 보세요!
+

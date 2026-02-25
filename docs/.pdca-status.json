@@ -1,0 +1,97 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-02-25T04:20:13.276Z",
+  "activeFeatures": [
+    "ai-service-site",
+    "AppsClient.tsx"
+  ],
+  "primaryFeature": "ai-service-site",
+  "features": {
+    "ai-service-site": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-25T04:19:18.472Z",
+        "lastUpdated": "2026-02-25T04:19:29.193Z"
+      },
+      "lastFile": "/Users/byunmose/Desktop/vibe_coding/ai-service-site/components/Header.tsx"
+    },
+    "AppsClient.tsx": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-25T04:19:37.498Z",
+        "lastUpdated": "2026-02-25T04:20:13.276Z"
+      },
+      "lastFile": "/Users/byunmose/Desktop/vibe_coding/ai-service-site/app/apps/AppsClient.tsx"
+    }
+  },
+  "pipeline": {
+    "currentPhase": 1,
+    "level": "Dynamic",
+    "phaseHistory": []
+  },
+  "session": {
+    "startedAt": "2026-02-25T04:15:50.241Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-02-25T04:20:13.276Z"
+  },
+  "history": [
+    {
+      "timestamp": "2026-02-25T04:19:18.472Z",
+      "feature": "ai-service-site",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:19:29.193Z",
+      "feature": "ai-service-site",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:19:37.498Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:19:44.438Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:19:47.409Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:19:58.410Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:20:02.940Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T04:20:13.276Z",
+      "feature": "AppsClient.tsx",
+      "phase": "do",
+      "action": "updated"
+    }
+  ]
+}

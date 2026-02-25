@@ -189,10 +189,16 @@ class EditorManager {
           const lang = (infostring || '').match(/\S*/)[0];
           
           if (lang === 'mermaid') {
-            return `<div class="mermaid">${code}</div>\n`;
+            const escapedMermaid = code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+            // 초기 코드를 보존하기 위해 data attribute 추가
+            const encodedSrc = escapedMermaid.replace(/"/g, '&quot;');
+            return `<div class="mermaid" data-mermaid-src="${encodedSrc}">${escapedMermaid}</div>\n`;
           }
 
-          if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+          if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang) && lang !== 'mermaid') {
             try {
               const highlighted = hljs.highlight(code, { language: lang }).value;
               return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>\n`;
@@ -275,6 +281,16 @@ class EditorManager {
       // 다이어그램 렌더링 (Mermaid)
       if (typeof mermaid !== 'undefined') {
         try {
+          // 기존에 렌더링된 SVG가 있다면 지우고 텍스트를 복구
+          const mermaidNodes = this.preview.querySelectorAll('.mermaid');
+          mermaidNodes.forEach((node, index) => {
+             // marked.js가 만든 원본 데이터가 data-md 어트리뷰트에 있다면 복구 (없다면 텍스트 컨텐츠 사용)
+             const originalCode = node.getAttribute('data-mermaid-src') || node.textContent;
+             // 혹시라도 id 때문에 재렌더링 에러가 난다면 id를 부여하거나 제거
+             node.removeAttribute('data-processed');
+             node.innerHTML = originalCode; // textContent 대신 원래 코드 복원
+          });
+
           // mermaid가 이미 초기화된 엘리먼트를 재처리할 수 있도록 초기화
           mermaid.init(undefined, this.preview.querySelectorAll('.mermaid'));
         } catch (err) {
