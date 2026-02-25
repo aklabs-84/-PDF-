@@ -5,8 +5,6 @@
 class App {
   constructor() {
     this.editorManager = null;
-    this.pdfGenerator = null;
-    this.templateEngine = null;
     this.fileHandler = null;
     this.uiManager = null;
   }
@@ -22,16 +20,9 @@ class App {
       this.uiManager = new UIManager();
       this.uiManager.init();
 
-      // Template Engine 초기화
-      this.templateEngine = new TemplateEngine();
-      await this.templateEngine.init();
-
       // Editor Manager 초기화
       this.editorManager = new EditorManager();
       this.editorManager.init('markdown-editor', 'markdown-preview');
-
-      // PDF Generator 초기화
-      this.pdfGenerator = new PDFGenerator();
 
       // File Handler 초기화
       this.fileHandler = new FileHandler();
@@ -70,11 +61,6 @@ class App {
     // 문서 불러오기
     window.addEventListener('load-document', (e) => {
       this.editorManager.loadDocument(e.detail.document);
-    });
-
-    // PDF 변환
-    window.addEventListener('export-pdf', async () => {
-      await this.exportToPDF();
     });
 
     // 마크다운 도구
@@ -242,10 +228,11 @@ class App {
         this.editorManager.setContent(successful[0].data.content);
         this.uiManager.showToast('success', '파일을 불러왔습니다.');
       } else if (successful.length > 1) {
-        // 다중 파일 - 일괄 변환 옵션
-        this.uiManager.hideLoading(loadingId);
-        this.showBatchConversionDialog(successful);
-        return;
+        // 다중 파일 
+        // 여러 파일을 한 번에 불러오는 기능은 PDF 일괄 변환이 삭제되어
+        // 기능상 처리 방식이 변경되었습니다. 현재는 첫 번째 파일만 엽니다.
+        this.editorManager.setContent(successful[0].data.content);
+        this.uiManager.showToast('info', '여러 파일 중 첫 번째 파일만 불러옵니다.');
       }
 
       // 실패한 파일 알림
@@ -259,160 +246,6 @@ class App {
       this.uiManager.hideLoading(loadingId);
       console.error('File upload error:', error);
       this.uiManager.showToast('error', '파일 업로드 중 오류가 발생했습니다.');
-    }
-  }
-
-  /**
-   * 일괄 변환 다이얼로그 표시
-   * @param {Array} files - 파일 데이터 배열
-   */
-  showBatchConversionDialog(files) {
-    const content = `
-      <p class="mb-4 text-gray-700 dark:text-gray-300">
-        ${files.length}개의 파일이 업로드되었습니다. 어떻게 처리하시겠습니까?
-      </p>
-      <div class="space-y-2">
-        ${files.map((f, i) => `
-          <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm">
-            ${i + 1}. ${f.data.name}
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    this.uiManager.modalManager.show('batch-convert', {
-      title: '다중 파일 처리',
-      content: content,
-      size: 'medium',
-      buttons: [
-        { label: '취소', action: 'cancel', className: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' },
-        { label: '일괄 PDF 변환', action: 'batch', className: 'bg-blue-600 text-white hover:bg-blue-700' }
-      ]
-    });
-
-    const handler = (e) => {
-      if (e.detail.modalId === 'batch-convert') {
-        if (e.detail.action === 'batch') {
-          this.batchConvertToPDF(files);
-        }
-        this.uiManager.modalManager.close('batch-convert');
-        window.removeEventListener('modal-action', handler);
-      }
-    };
-
-    window.addEventListener('modal-action', handler);
-  }
-
-  /**
-   * 일괄 PDF 변환
-   * @param {Array} files - 파일 데이터 배열
-   */
-  async batchConvertToPDF(files) {
-    const progress = this.uiManager.showProgress('PDF 변환 중...');
-
-    try {
-      const pdfs = [];
-      const template = this.templateEngine.getActiveTemplate();
-      const settings = {};
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        progress.update((i / files.length) * 100, `${i + 1}/${files.length} 변환 중...`);
-
-        try {
-          const doc = await this.pdfGenerator.generate(file.data.content, template, settings);
-          pdfs.push({
-            doc: doc,
-            filename: file.data.name.replace(/\.[^/.]+$/, '')
-          });
-        } catch (error) {
-          console.error(`Failed to convert ${file.data.name}:`, error);
-        }
-      }
-
-      progress.update(100, 'ZIP 파일 생성 중...');
-
-      // ZIP으로 다운로드
-      await this.fileHandler.downloadBatch(pdfs, 'converted-pdfs');
-
-      progress.close();
-      this.uiManager.showToast('success', `${pdfs.length}개의 PDF가 변환되었습니다.`);
-    } catch (error) {
-      progress.close();
-      console.error('Batch conversion error:', error);
-      this.uiManager.showToast('error', 'PDF 변환 중 오류가 발생했습니다.');
-    }
-  }
-
-  /**
-   * PDF 변환 및 다운로드
-   */
-  async exportToPDF() {
-    const content = this.editorManager.getContent();
-
-    if (!content.trim()) {
-      this.uiManager.showToast('warning', '변환할 내용이 없습니다.');
-      return;
-    }
-
-    const loadingId = this.uiManager.showLoading('PDF 생성 중...');
-
-    try {
-      // jsPDF 라이브러리 체크
-      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
-        throw new Error('jsPDF 라이브러리가 로드되지 않았습니다. 인터넷 연결을 확인하세요.');
-      }
-
-      // 템플릿 가져오기
-      const template = this.templateEngine.getActiveTemplate();
-
-      if (!template) {
-        throw new Error('템플릿을 불러올 수 없습니다.');
-      }
-
-      // PDF 생성
-      const settings = {};
-      const doc = await this.pdfGenerator.generate(content, template, settings);
-
-      // 파일명 생성
-      const title = MarkdownHelper.extractTitle(content);
-      const filename = title.replace(/[^\w\s가-힣-]/g, '').substring(0, 50) || 'document';
-
-      // 다운로드
-      this.fileHandler.downloadPDF(doc, filename);
-
-      this.uiManager.hideLoading(loadingId);
-      this.uiManager.showToast('success', 'PDF가 생성되었습니다!');
-    } catch (error) {
-      this.uiManager.hideLoading(loadingId);
-      console.error('PDF generation error:', error);
-
-      // 에러 타입별 메시지
-      let errorMessage = 'PDF 생성 중 오류가 발생했습니다.';
-
-      if (error.message.includes('jsPDF')) {
-        errorMessage = 'jsPDF 라이브러리 로딩 실패. 인터넷 연결을 확인하세요.';
-      } else if (error.message.includes('font') || error.message.includes('Font')) {
-        errorMessage = '폰트 로딩 실패. fonts 디렉토리에 한글 폰트 파일(.ttf)이 있는지 확인하세요.';
-      } else if (error.message.includes('fetch') || error.message.includes('404')) {
-        errorMessage = '필요한 파일을 찾을 수 없습니다. 웹 서버를 통해 실행 중인지 확인하세요.';
-      }
-
-      this.uiManager.modalManager.alert(
-        `<div class="space-y-2">
-          <p class="font-semibold text-red-600">❌ ${errorMessage}</p>
-          <p class="text-sm text-gray-600">${error.message}</p>
-          <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p class="text-sm font-semibold">💡 해결 방법:</p>
-            <ul class="text-sm mt-2 space-y-1 list-disc list-inside">
-              <li>웹 서버를 통해 실행 중인지 확인 (file:// 프로토콜이 아닌 http://)</li>
-              <li>fonts 디렉토리에 .ttf 폰트 파일 3개가 있는지 확인</li>
-              <li>인터넷 연결 확인 (CDN 라이브러리 로딩용)</li>
-              <li>브라우저 콘솔(F12)에서 상세 에러 확인</li>
-            </ul>
-          </div>
-        </div>`
-      );
     }
   }
 

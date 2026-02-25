@@ -174,20 +174,6 @@ class UIManager {
       });
     }
 
-    // 템플릿 선택
-    const templateBtn = document.getElementById('template-btn');
-    if (templateBtn) {
-      templateBtn.addEventListener('click', () => this.showTemplateSelector());
-    }
-
-    // PDF 변환 및 Export 옵션
-    const exportPdfBtn = document.getElementById('export-pdf-drop-btn');
-    if (exportPdfBtn) {
-      exportPdfBtn.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('export-pdf'));
-      });
-    }
-
     const exportMdBtn = document.getElementById('export-md-btn');
     if (exportMdBtn) {
       exportMdBtn.addEventListener('click', () => {
@@ -319,89 +305,6 @@ class UIManager {
         toast.remove();
       }, 300);
     }, duration);
-  }
-
-  /**
-   * 템플릿 선택 모달 표시
-   */
-  showTemplateSelector() {
-    let templates = [];
-
-    try {
-      if (window && window.app && window.app.templateEngine && typeof window.app.templateEngine.getAllTemplates === 'function') {
-        templates = window.app.templateEngine.getAllTemplates();
-      }
-    } catch (error) {
-      console.error('Failed to get templates from TemplateEngine:', error);
-      templates = [];
-    }
-
-    // 폴백: 템플릿이 없으면 TemplateEngine의 기본 템플릿 사용
-    if (!templates || templates.length === 0) {
-      try {
-        const te = new TemplateEngine();
-        const defaults = te.getDefaultTemplates();
-        templates = Object.values(defaults);
-      } catch (e) {
-        templates = [];
-      }
-    }
-
-    if (!templates || templates.length === 0) {
-      this.modalManager.alert('템플릿을 불러올 수 없습니다. 콘솔을 확인하세요.');
-      return;
-    }
-
-    const content = `
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        ${templates.map(template => `
-          <div class="template-card p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors" data-template="${template.name}">
-            <h4 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">${template.displayName}</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${template.description}</p>
-            <div class="text-xs text-gray-500 dark:text-gray-500">
-              <div>폰트: ${template.font}</div>
-              <div>크기: ${template.fontSize}pt</div>
-              <div>여백: ${template.margin.top}pt</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    try {
-      this.modalManager.show('template-selector', {
-        title: '템플릿 선택',
-        content: content,
-        size: 'large',
-        buttons: [
-          { label: '취소', action: 'close', className: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' }
-        ]
-      });
-
-      // 템플릿 카드 클릭 이벤트
-      setTimeout(() => {
-        document.querySelectorAll('.template-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const templateName = card.dataset.template;
-            try {
-              if (window && window.app && window.app.templateEngine && typeof window.app.templateEngine.setCurrentTemplate === 'function') {
-                window.app.templateEngine.setCurrentTemplate(templateName);
-              }
-              // 템플릿 변경 이벤트 브로드캐스트
-              window.dispatchEvent(new CustomEvent('template-changed', { detail: { template: templateName } }));
-              this.modalManager.close('template-selector');
-              this.showToast('success', `${card.querySelector('h4').textContent} 템플릿이 선택되었습니다.`);
-            } catch (e) {
-              console.error('Failed to set template:', e);
-              this.modalManager.alert('템플릿 적용 중 오류가 발생했습니다. 콘솔을 확인하세요.');
-            }
-          });
-        });
-      }, 100);
-    } catch (e) {
-      console.error('Failed to show template selector modal:', e);
-      this.modalManager.alert('템플릿 선택창을 열 수 없습니다. 콘솔을 확인하세요.');
-    }
   }
 
   /**
@@ -547,10 +450,6 @@ class UIManager {
               <td class="py-2 text-gray-600 dark:text-gray-400">링크 삽입</td>
             </tr>
             <tr class="border-b border-gray-200 dark:border-gray-700">
-              <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Ctrl/Cmd + P</kbd></td>
-              <td class="py-2 text-gray-600 dark:text-gray-400">PDF 변환</td>
-            </tr>
-            <tr class="border-b border-gray-200 dark:border-gray-700">
               <td class="py-2"><kbd class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-300">Tab</kbd></td>
               <td class="py-2 text-gray-600 dark:text-gray-400">들여쓰기</td>
             </tr>
@@ -563,7 +462,7 @@ class UIManager {
 
         <h4 class="font-bold text-lg mb-3 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">마크다운 문법</h4>
         <ul class="list-disc pl-5 space-y-2 mb-6 text-sm text-gray-600 dark:text-gray-400">
-          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"># 제목 1</code> - 가장 큰 제목 (선택한 문서 템플릿에 따라 아래쪽에 밑줄 같은 전용 스타일이 입혀집니다.)</li>
+          <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs"># 제목 1</code> - 가장 큰 제목 (기본 밑줄 테마 적용)</li>
           <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">## 제목 2</code> - 중간 제목</li>
           <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">**굵게**</code> - 굵은 글씨</li>
           <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">_기울임_</code> - 기울임</li>

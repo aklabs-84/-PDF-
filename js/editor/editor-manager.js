@@ -90,12 +90,6 @@ class EditorManager {
     this.textarea.addEventListener('paste', (e) => {
       this.handlePaste(e);
     });
-
-    // 템플릿 변경 이벤트 수신: 미리보기 갱신
-    window.addEventListener('template-changed', () => {
-      // 즉시가 아닌 디바운스된 갱신 사용
-      if (this.updatePreviewDebounced) this.updatePreviewDebounced();
-    });
   }
 
   /**
@@ -250,15 +244,8 @@ class EditorManager {
 
       this.preview.innerHTML = html;
 
-      // 선택된 템플릿 스타일 적용
-      try {
-        const template = window.app && window.app.templateEngine ? window.app.templateEngine.getActiveTemplate() : null;
-        if (template) {
-          this.applyTemplateStylesToPreview(template);
-        }
-      } catch (e) {
-        console.error('Failed to apply template styles to preview:', e);
-      }
+      // 스타일 적용
+      this.applyPreviewStyles();
 
       // 코드 블록 하이라이팅
       if (typeof hljs !== 'undefined') {
@@ -367,47 +354,30 @@ class EditorManager {
   }
 
   /**
-   * 선택된 템플릿 스타일을 미리보기 영역에 적용
-   * @param {Object} template
+   * 미리보기 영역에 기본 마크다운 스타일 적용
    */
-  applyTemplateStylesToPreview(template) {
-    if (!this.preview || !template) return;
+  applyPreviewStyles() {
+    if (!this.preview) return;
 
-    // 폰트 family 매핑 (Google Fonts 이름과 일치)
-    const fontFamilyMap = {
-      'NanumGothic': "'Nanum Gothic', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
-      'NanumMyeongjo': "'Nanum Myeongjo', 'Times New Roman', serif",
-      'NanumPen': "'Nanum Pen Script', 'Brush Script MT', cursive"
-    };
+    const settings = StorageManager.getSettings();
 
-    const family = fontFamilyMap[template.font] || template.font || 'sans-serif';
-
-    // 기본 스타일 적용 - !important로 강제 적용
-    this.preview.style.setProperty('font-family', family, 'important');
-    this.preview.style.setProperty('line-height', `${template.lineHeight}`, 'important');
+    // 기본 폰트 및 줄간격 설정
+    this.preview.style.setProperty('font-family', "'Nanum Gothic', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif", 'important');
+    this.preview.style.setProperty('line-height', "1.6", 'important');
     
     // 다크모드 감지
     const isDarkMode = document.documentElement.classList.contains('dark');
     
-    // 안전한 색상 값 추출 (다크모드일 경우 테마 색상 반전 처리 또는 기본값 변경)
-    let primaryColor = template.colors?.primary;
-    let accentColor = template.colors?.accent || '#428bca';
-    let codeColor = template.colors?.code || '#f5f5f5';
-    let codeTextColor = template.colors?.codeText || '#333333';
+    // 색상 설정
+    const primaryColor = isDarkMode ? '#f9fafb' : '#333333';
+    const accentColor = isDarkMode ? '#60a5fa' : '#3b82f6';
+    const codeColor = isDarkMode ? '#374151' : '#f5f5f5';
+    const codeTextColor = isDarkMode ? '#e5e7eb' : '#333333';
     
-    if (isDarkMode) {
-      primaryColor = primaryColor || '#f9fafb'; // 기본 다크모드 텍스트 색상
-      codeColor = '#374151'; // 다크모드 코드 배경
-      codeTextColor = '#e5e7eb'; // 다크모드 코드 텍스트
-    } else {
-      primaryColor = primaryColor || '#333333'; // 기본 라이트모드 텍스트 색상
-    }
-
     this.preview.style.setProperty('color', primaryColor, 'important');
 
-    // 제목 크기 및 색상, 표 스타일을 동적으로 삽입
-    // <style> 태그는 document.head에 추가해야 함 (preview 내부에 추가하면 [object Object] 오류 발생)
-    const styleId = 'template-preview-styles';
+    // 스타일 태그 주입
+    const styleId = 'markdown-preview-styles';
     let styleEl = document.getElementById(styleId);
     if (!styleEl) {
       styleEl = document.createElement('style');
@@ -415,109 +385,50 @@ class EditorManager {
       document.head.appendChild(styleEl);
     }
 
-    // 템플릿별 특별한 스타일 추가
-    let templateSpecificStyles = '';
     const hideH1Underline = settings.showH1Underline === false;
 
-    if (template.name === 'business') {
-      templateSpecificStyles = `
-        #${this.preview.id} h1 {
-          ${hideH1Underline ? '' : `border-bottom: 3px solid ${accentColor};`}
-          padding-bottom: 12px;
-          margin-bottom: 24px;
-          font-weight: 700;
-        }
-        #${this.preview.id} h2 {
-          border-left: 4px solid ${accentColor};
-          padding-left: 12px;
-          margin-top: 28px;
-          font-weight: 600;
-        }
-      `;
-    } else if (template.name === 'creative') {
-      templateSpecificStyles = `
-        #${this.preview.id} h1 {
-          ${hideH1Underline ? '' : `background: linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}11 100%);\n          border-left: 5px solid ${accentColor};`}
-          padding: 16px 20px;
-          border-radius: 8px;
-          margin: 20px 0;
-        }
-        #${this.preview.id} h2 {
-          color: ${accentColor};
-          margin-top: 24px;
-        }
-        #${this.preview.id} blockquote {
-          border-left: 4px solid ${accentColor} !important;
-          background: ${accentColor}11 !important;
-        }
-      `;
-    } else if (template.name === 'academic') {
-      templateSpecificStyles = `
-        #${this.preview.id} h1 {
-          text-align: center;
-          ${hideH1Underline ? '' : `border-bottom: 2px solid ${primaryColor};`}
-          padding-bottom: 16px;
-          margin-bottom: 32px;
-          font-weight: 700;
-        }
-        #${this.preview.id} h2 {
-          margin-top: 32px;
-          font-weight: 600;
-        }
-        #${this.preview.id} p {
-          text-align: justify;
-        }
-      `;
-    } else {
-      // clean 템플릿
-      templateSpecificStyles = `
-        #${this.preview.id} h1 {
-          ${hideH1Underline ? '' : `border-bottom: 2px solid ${accentColor};`}
-          padding-bottom: 8px;
-          margin-bottom: 20px;
-        }
-      `;
-    }
-
     const headingStyles = `
-      #${this.preview.id} h1 { font-size: ${template.headingSize?.[1] || 24}px; color: ${primaryColor}; }
-      #${this.preview.id} h2 { font-size: ${template.headingSize?.[2] || 20}px; color: ${primaryColor}; }
-      #${this.preview.id} h3 { font-size: ${template.headingSize?.[3] || 18}px; color: ${primaryColor}; }
-      #${this.preview.id} h4 { font-size: ${template.headingSize?.[4] || 16}px; color: ${primaryColor}; }
-      #${this.preview.id} h5 { font-size: ${template.headingSize?.[5] || 14}px; color: ${primaryColor}; }
-      #${this.preview.id} h6 { font-size: ${template.headingSize?.[6] || 12}px; color: ${primaryColor}; }
+      #${this.preview.id} h1 { 
+        font-size: 26px; 
+        color: ${primaryColor}; 
+        ${hideH1Underline ? '' : `border-bottom: 2px solid ${accentColor};`}
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+      #${this.preview.id} h2 { font-size: 21px; color: ${primaryColor}; font-weight: 600; margin-top: 24px; margin-bottom: 16px; }
+      #${this.preview.id} h3 { font-size: 18px; color: ${primaryColor}; font-weight: 600; margin-top: 20px; margin-bottom: 12px; }
+      #${this.preview.id} h4 { font-size: 16px; color: ${primaryColor}; font-weight: 600; margin-top: 16px; margin-bottom: 8px; }
+      #${this.preview.id} h5 { font-size: 14px; color: ${primaryColor}; font-weight: 600; }
+      #${this.preview.id} h6 { font-size: 12px; color: ${primaryColor}; font-weight: 600; }
     `;
 
     const tableStyles = `
-      #${this.preview.id} table, #${this.preview.id} .kpdf-table {
+      #${this.preview.id} table {
         width: 100%;
         border-collapse: collapse;
         margin-bottom: 1.5rem;
       }
-      #${this.preview.id} table th, #${this.preview.id} table td,
-      #${this.preview.id} .kpdf-table th, #${this.preview.id} .kpdf-table td {
+      #${this.preview.id} table th, #${this.preview.id} table td {
         border: 1px solid rgba(0,0,0,0.12);
         padding: 10px;
         text-align: left;
       }
-      #${this.preview.id} table thead th, #${this.preview.id} .kpdf-table thead th {
+      #${this.preview.id} table thead th {
         background: ${codeColor};
         color: ${codeTextColor};
         font-weight: 600;
       }
-      #${this.preview.id} .kpdf-table td {
-        vertical-align: top;
-      }
     `;
 
-    // 미리보기 패딩 스타일 (템플릿의 여백을 반영)
+    // 미리보기 여백 고정
     const paddingStyles = `
       #${this.preview.id} {
-        padding: ${template.margin?.top / 4}px ${template.margin?.right / 4}px ${template.margin?.bottom / 4}px ${template.margin?.left / 4}px;
+        padding: 16px;
       }
     `;
 
-    styleEl.textContent = headingStyles + tableStyles + templateSpecificStyles + paddingStyles;
+    styleEl.textContent = headingStyles + tableStyles + paddingStyles;
   }
 
   /**
