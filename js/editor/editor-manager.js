@@ -422,6 +422,26 @@ class EditorManager {
       throw new Error('Marked.js not loaded');
     }
 
+    // 수학 수식 보호 (Stash): $$ ... $$ 및 $ ... $ 안의 내용이 marked.js에 의해 변환되는 것을 방지
+    const mathBlocks = [];
+    let mathIndex = 0;
+    
+    // 블록 수식 ($$ ... $$)
+    let processed = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
+      const placeholder = `__MATH_BLOCK_${mathIndex}__`;
+      mathBlocks.push(match);
+      mathIndex++;
+      return placeholder;
+    });
+
+    // 인라인 수식 ($ ... $) - 단, 앞뒤가 공백이 아닌 경우만 (달러 기호 자체 사용과 구분)
+    processed = processed.replace(/(^|[^\\])\$([^\$\n]+?)\$(?!\d)/g, (match, prefix, content) => {
+      const placeholder = `__MATH_BLOCK_${mathIndex}__`;
+      mathBlocks.push(`$${content}$`);
+      mathIndex++;
+      return prefix + placeholder;
+    });
+
     // 간단한 전처리: 파이프(|)로 구성된 표 블록이 있는데 구분선(---)이 없다면 자동으로 삽입
     const preprocessed = (function(src) {
       const lines = src.split('\n');
@@ -496,16 +516,22 @@ class EditorManager {
         i++;
       }
       return out.join('\n');
-    })(markdown);
+    })(processed);
 
-    return marked.parse(preprocessed);
+    let html = marked.parse(preprocessed);
+    
+    // 보호했던 수식 블록 복원 (정규식 치환 시 특수문자 무시를 위해 콜백 함수 사용)
+    mathBlocks.forEach((block, index) => {
+      html = html.replace(`__MATH_BLOCK_${index}__`, () => block);
+    });
+
+    return html;
   }
 
   /**
    * 미리보기 영역에 기본 마크다운 스타일 적용
    */
   applyPreviewStyles() {
-    if (!this.preview) return;
 
     const settings = StorageManager.getSettings();
 
