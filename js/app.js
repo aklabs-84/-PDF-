@@ -137,7 +137,7 @@ class App {
 
     // 본문 전체 복사
     window.addEventListener('copy-all', () => {
-      const content = this.editorManager.getMarkdown();
+      const content = this.editorManager.getContent();
       navigator.clipboard.writeText(content).then(() => {
         this.uiManager.showToast('success', '마크다운 내용이 전체 복사되었습니다.');
       }).catch(err => {
