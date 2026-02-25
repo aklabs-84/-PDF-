@@ -68,7 +68,7 @@ class SlashMenu {
         this.renderMenuItems();
       });
       
-      item.addEventListener('click', (e) => {
+      item.addEventListener('mousedown', (e) => {
         e.preventDefault();
         cmd.action();
       });

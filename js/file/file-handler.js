@@ -302,6 +302,14 @@ class FileHandler {
 </head>
 <body>
 ${bodyHTML}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({ startOnLoad: true });
+    }
+  });
+</script>
 </body>
 </html>`;
   }

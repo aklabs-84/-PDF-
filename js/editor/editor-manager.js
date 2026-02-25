@@ -61,6 +61,9 @@ class EditorManager {
 
     // 저장된 문서 불러오기
     this.loadLastDocument();
+    
+    // 초기 상태 히스토리 저장
+    this.saveHistoryState(this.textarea.value, this.textarea.selectionStart || 0, this.textarea.selectionEnd || 0);
 
     // Marked.js 옵션 설정
     this.configureMarked();
@@ -141,7 +144,11 @@ class EditorManager {
           break;
         case 'z':
           e.preventDefault();
-          this.undo();
+          if (e.shiftKey) {
+            this.redo();
+          } else {
+            this.undo();
+          }
           break;
         case 'y':
           e.preventDefault();
@@ -821,6 +828,11 @@ function hello() {
     this.updatePreview();
     this.updateStats();
     this.textarea.focus();
+    
+    // 히스토리 초기화
+    this.history = [];
+    this.historyIndex = -1;
+    this.saveHistoryState('', 0, 0);
   }
 
   /**
@@ -901,6 +913,11 @@ function hello() {
     this.isModified = true;
     this.updatePreview();
     this.updateStats();
+    
+    // 새로 콘텐츠가 세팅되면 히스토리를 갱신
+    this.history = [];
+    this.historyIndex = -1;
+    this.saveHistoryState(content, 0, 0);
   }
 
   /**
