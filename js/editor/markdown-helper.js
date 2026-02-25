@@ -142,6 +142,35 @@ class MarkdownHelper {
   }
 
   /**
+   * 수식 (KaTeX) 삽입
+   */
+  math() {
+    const selection = this.getSelection();
+    let replacement = '';
+    
+    // 블록 수식 (선택된 텍스트가 여러 줄이거나 비어있을 때)
+    if (!selection.text || selection.text.includes('\n')) {
+      const text = selection.text || 'f(x) = ...';
+      replacement = `\n$$ \n${text} \n$$ \n`;
+      this.replaceSelection(replacement, 0);
+    } else {
+      // 인라인 수식
+      replacement = `$${selection.text}$`;
+      this.replaceSelection(replacement, 0);
+    }
+  }
+
+  /**
+   * 다이어그램 (Mermaid) 삽입
+   */
+  mermaid() {
+    const selection = this.getSelection();
+    const defaultGraph = "graph TD\n    A --> B";
+    const replacement = `\n\`\`\`mermaid\n${selection.text || defaultGraph}\n\`\`\`\n`;
+    this.replaceSelection(replacement, 0);
+  }
+
+  /**
    * 이미지 삽입
    * @param {string} url - 이미지 URL (선택적)
    * @param {string} alt - 대체 텍스트 (선택적)

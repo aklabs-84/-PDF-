@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+</head>
+<body>
+  <div id="out"></div>
+  <script>
+    const renderer = {
+        code(code, infostring) {
+          const lang = (infostring || '').match(/\S*/)[0];
+          if (lang === 'mermaid') {
+            return `<div class="mermaid">${code}</div>\n`;
+          }
+          return `<pre><code>${code}</code></pre>`;
+        }
+    };
+    marked.use({ renderer });
+    document.getElementById('out').innerHTML = marked.parse("```mermaid\ngraph TD;\nA-->B;\n```");
+    console.log(document.getElementById('out').innerHTML);
+  </script>
+</body>
+</html>

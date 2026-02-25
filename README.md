@@ -1,206 +1,78 @@
-# 한글 PDF 변환기 (Korean PDF Converter)
+# 📝 마크다운 노트 (Markdown Note)
 
-마크다운으로 작성된 한글 문서를 아름다운 PDF로 변환하는 무료 웹 애플리케이션입니다.
-
-## 주요 기능
-
-### 📝 마크다운 에디터
-- 실시간 미리보기
-- 문법 하이라이팅
-- 자동 저장 (30초마다)
-- 단축키 지원 (Ctrl+B, Ctrl+I, Ctrl+S 등)
-- 전체화면 모드
-
-### 📄 PDF 변환
-- 한글 폰트 완벽 지원 (나눔고딕, 나눔명조, 나눔펜)
-- 4가지 전문 템플릿 (Clean, Business, Academic, Creative)
-- 커스터마이징 가능한 페이지 설정
-- 페이지 번호, 헤더, 푸터 추가
-- 고품질 PDF 출력
-
-### 📂 파일 관리
-- 드래그 앤 드롭 지원
-- 다중 파일 일괄 변환
-- 로컬 스토리지 자동 저장
-- 문서 검색 및 관리
-- 마크다운/HTML 내보내기
-
-### 🎨 사용자 경험
-- 다크/라이트 테마
-- 반응형 디자인 (PC, 태블릿, 모바일)
-- 직관적인 UI/UX
-- 빠른 성능
-- 오프라인 지원
-
-## 빠른 시작
-
-### 온라인 사용
-웹 브라우저에서 바로 사용하세요:
-```
-https://your-domain.com
-```
-
-### 로컬 실행
-1. 저장소 클론:
-```bash
-git clone https://github.com/yourusername/korean-pdf-converter.git
-cd korean-pdf-converter
-```
-
-2. 웹 서버로 실행:
-```bash
-# Python 3
-python -m http.server 8000
-
-# Node.js (http-server)
-npx http-server -p 8000
-```
-
-3. 브라우저에서 접속:
-```
-http://localhost:8000
-```
-
-## 사용 방법
-
-### 1. 마크다운 작성
-에디터에 마크다운 문법으로 문서를 작성합니다:
-
-```markdown
-# 제목 1
-## 제목 2
-
-**굵은 글씨** _기울임_ `코드`
-
-- 목록 항목 1
-- 목록 항목 2
-
-[링크](https://example.com)
-```
-
-### 2. 실시간 미리보기
-오른쪽 패널에서 실시간으로 결과를 확인합니다.
-
-### 3. 템플릿 선택
-"템플릿 선택" 버튼을 클릭하여 원하는 스타일을 선택합니다:
-- **Clean**: 심플하고 깔끔한 디자인
-- **Business**: 비즈니스 문서용 전문적인 스타일
-- **Academic**: 학술 논문 및 보고서용
-- **Creative**: 창의적이고 독특한 디자인
-
-### 4. PDF 변환
-"PDF 변환" 버튼을 클릭하여 PDF 파일을 다운로드합니다.
-
-## 지원하는 마크다운 문법
-
-- 제목 (H1-H6)
-- 문단
-- 굵게, 기울임, 취소선
-- 목록 (순서 있음/없음)
-- 링크
-- 이미지
-- 인용구
-- 코드 블록
-- 표 (테이블)
-- 수평선
-- 체크박스
-
-## 단축키
-
-| 단축키 | 기능 |
-|--------|------|
-| `Ctrl + S` | 문서 저장 |
-| `Ctrl + B` | 굵게 |
-| `Ctrl + I` | 기울임 |
-| `Ctrl + K` | 링크 삽입 |
-| `Ctrl + P` | PDF 변환 |
-| `F11` | 전체화면 |
-
-## 브라우저 지원
-
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-
-## 기술 스택
-
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styling**: Tailwind CSS
-- **Markdown**: Marked.js
-- **PDF**: jsPDF, jsPDF-AutoTable
-- **Storage**: LocalStorage API
-- **Libraries**: Highlight.js, JSZip
-
-## 프로젝트 구조
-
-```
-korean-pdf-converter/
-├── index.html              # 메인 HTML
-├── css/
-│   ├── main.css           # 메인 스타일
-│   └── themes.css         # 테마 스타일
-├── js/
-│   ├── app.js             # 애플리케이션 진입점
-│   ├── editor/            # 에디터 관련
-│   ├── pdf/               # PDF 생성 관련
-│   ├── storage/           # 로컬 스토리지 관련
-│   ├── file/              # 파일 처리 관련
-│   └── ui/                # UI 관리 관련
-├── fonts/                 # 한글 폰트 파일
-├── templates/             # PDF 템플릿 설정
-└── assets/                # 이미지 및 아이콘
-```
-
-## 개발 로드맵
-
-### v1.0 (현재)
-- ✅ 기본 마크다운 에디터
-- ✅ PDF 변환 기능
-- ✅ 한글 폰트 지원
-- ✅ 4가지 템플릿
-- ✅ 로컬 스토리지
-
-### v1.1 (예정)
-- 📋 클라우드 저장소 연동 (Google Drive, Dropbox)
-- 📋 협업 기능
-- 📋 버전 관리
-- 📋 고급 템플릿 추가
-
-### v1.2 (예정)
-- 📋 플러그인 시스템
-- 📋 커스텀 폰트 업로드
-- 📋 수식 지원 (LaTeX)
-- 📋 다이어그램 지원 (Mermaid)
-
-## 기여하기
-
-기여를 환영합니다! 다음 절차를 따라주세요:
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
-
-## 문의 및 지원
-
-- 이슈 리포트: [GitHub Issues](https://github.com/yourusername/korean-pdf-converter/issues)
-- 이메일: support@example.com
-
-## 감사의 말
-
-이 프로젝트는 다음 오픈소스 라이브러리를 사용합니다:
-- [Marked.js](https://marked.js.org/)
-- [jsPDF](https://github.com/parallax/jsPDF)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Highlight.js](https://highlightjs.org/)
-- [Nanum Fonts](https://hangeul.naver.com/font)
+웹이나 문서의 복잡한 텍스트를 복사(Ctrl+C)해서 붙여넣기(Ctrl+V)만 하면 깔끔한 마크다운으로 자동 정리해주는 똑똑한 스마트 에디터입니다.
 
 ---
 
-Made with ❤️ by Korean PDF Converter Team
+## ✨ 핵심 기능
+
+### � 스마트 붙여넣기 (Smart Paste)
+인터넷 기사, 블로그 글, 또는 MS Word 문서 등 출처와 상관없이 복잡한 서식이 적용된 텍스트를 복사하여 에디터에 붙여넣어 보세요. 앱이 스스로 판단하여 보기 좋은 표준 마크다운 문법으로 깔끔하게 변환(청소)해 줍니다. 
+
+### 🎨 다이내믹 프리뷰 (Dynamic Preview)
+왼쪽(위쪽) 패널에서 코드를 입력하면 즉각적으로 HTML 렌더링된 결과물이 우측(아랫쪽) 화면에 실시간으로 나타납니다.
+
+### ⚡ Notion 스타일 슬래시 (`/`) 명령어
+복잡한 마크다운 문법(Heading, Bold, Table 등)을 전부 외울 필요가 없습니다. 빈 줄에서 `/` 키를 입력하면 나타나는 **마법의 드롭다운 메뉴**를 통해 모든 서식을 마우스나 키보드 방향키로 바로 삽입할 수 있습니다.
+
+### 🧮 수학 수식 및 다이어그램 완벽 지원
+전문적인 문서를 작성하는 개발자와 연구자를 위해 고급 확장 기능을 내장하고 있습니다:
+- **KaTeX (수학 수식)**: `$$ E = mc^2 $$` 형태의 복잡한 수학 수식을 레이텍(LaTeX) 문법으로 깔끔히 렌더링합니다.
+- **Mermaid (다이어그램)**: `graph TD \n A --> B` 와 같은 텍스트 기반 차트와 순서도를 그릴 수 있습니다.
+
+### ☑️ 체크리스트 취소선 스타일링
+슬래시 메뉴를 이용해 '할 일 목록'을 만들고, 미리보기 창에서 직접 체크(완료)해 보세요. 완료된 할 일은 자동으로 회색 처리 및 취소선(`line-through`) 렌더링이 적용되어 더욱 직관적입니다.
+
+---
+
+## 💡 빠른 사용 가이드
+
+### 1단계: 작성하기
+좌측 마크다운 에디터 창에 자유롭게 텍스트를 입력하거나, 외부 텍스트를 붙여넣습니다 (자동으로 마크다운으로 변환됩니다).
+
+### 2단계: 고급 서식 삽입하기
+에디터 빈공간에 `/`를 타이핑하여 슬래시 메뉴를 호출해 보세요:
+- **[제목 1~3]**: 문서의 뼈대를 나눕니다.
+- **[굵게 / 기울임 / 인용구 / 코드 / 표]**: 일상적인 서식을 빠르게 넣습니다.
+- **[할 일 목록]**: 클릭할 수 있는 우아한 체크리스트가 만들어집니다.
+- **[수식 / 다이어그램]**: 개발자, 이과생들을 위한 필살기 템플릿 코드 블록이 생성되어 직관적인 편집이 가능해집니다.
+
+*Tip: 슬래시 메뉴 대신 에디터 상단에 위치한 직관적인 툴바 버튼(B, I, H1, ∑, ⑆ 등)을 클릭해도 동일한 스니펫이 삽입됩니다.*
+
+---
+
+## � 빠른 로컬 실행
+
+1. 저장소를 클론합니다:
+```bash
+git clone https://github.com/aklabs-84/markdown-note.git
+cd markdown-note
+```
+
+2. 정적 웹 서버를 통해 실행합니다:
+```bash
+# Node.js (npx) 추천
+npx serve . -p 8080
+
+# 또는 Python 3 사용 시
+python3 -m http.server 8080
+```
+
+3. 웹 브라우저에서 아래 주소로 접속합니다:
+```
+http://localhost:8080
+```
+
+---
+
+## 🛠 기술 스택
+- **Frontend Core**: Vanilla HTML5, CSS3, JavaScript (ES6+)
+- **Styling**: Tailwind CSS (CDN 적용)
+- **Markdown Parsing Core**: Marked.js (마크다운 렌더링)
+- **HTML to Markdown**: Turndown.js (스마트 붙여넣기 기능)
+- **Syntax Highlighting**: Highlight.js (코드 하이라이팅)
+- **Math Rendering**: KaTeX
+- **Diagram Rendering**: Mermaid.js
+
+---
+Made with ❤️ by Korean PDF Converter Team (Pivoted to Markdown Note)

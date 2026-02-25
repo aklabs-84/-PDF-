@@ -139,14 +139,6 @@ class UIManager {
       document.getElementById('header-help-btn').addEventListener('click', () => this.showHelp());
     }
 
-    // H1 밑줄 토글 버튼
-    const toggleH1UnderlineBtn = document.getElementById('toggle-h1-underline-btn');
-    if (toggleH1UnderlineBtn) {
-      toggleH1UnderlineBtn.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('toggle-h1-underline'));
-      });
-    }
-
     // 파일 업로드
     const uploadBtn = document.getElementById('upload-file-btn');
     if (uploadBtn) {
@@ -254,6 +246,8 @@ class UIManager {
       'heading2-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading2')),
       'heading3-btn': () => window.dispatchEvent(new CustomEvent('markdown-heading3')),
       'quote-btn': () => window.dispatchEvent(new CustomEvent('markdown-quote')),
+      'math-btn': () => window.dispatchEvent(new CustomEvent('markdown-math')),
+      'diagram-btn': () => window.dispatchEvent(new CustomEvent('markdown-mermaid')),
       'hr-btn': () => window.dispatchEvent(new CustomEvent('markdown-hr')),
       'link-btn': () => window.dispatchEvent(new CustomEvent('markdown-link')),
       'image-btn': () => window.dispatchEvent(new CustomEvent('markdown-image')),

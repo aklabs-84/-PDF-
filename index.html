@@ -26,6 +26,9 @@
   <!-- Highlight.js for code syntax -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
 
+  <!-- KaTeX for Math Equations -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+
   <!-- Korean Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -153,6 +156,16 @@ body {
 
 #markdown-preview li {
   @apply mb-2 text-gray-700 dark:text-gray-300;
+}
+
+/* Task list styling */
+#markdown-preview li input[type="checkbox"] {
+  @apply mr-2 mt-1 align-top cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
+}
+
+/* Strikethrough for checked task list items */
+#markdown-preview li:has(input[type="checkbox"]:checked) {
+  @apply line-through text-gray-400 dark:text-gray-500 transition-colors duration-200;
 }
 
 #markdown-preview blockquote {
@@ -480,6 +493,20 @@ body {
               </path>
             </svg>
           </button>
+          <button id="math-btn" class="toolbar-btn" title="수식 (KaTeX)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8V6a2 2 0 012-2h12a2 2 0 012 2v2M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M9 12h6M12 9v6">
+              </path>
+            </svg>
+          </button>
+          <button id="diagram-btn" class="toolbar-btn" title="다이어그램 (Mermaid)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z">
+              </path>
+            </svg>
+          </button>
           <button id="hr-btn" class="toolbar-btn" title="구분선">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16"></path>
@@ -527,12 +554,6 @@ body {
 
         <!-- View Options -->
         <div class="flex items-center space-x-1 border-r border-gray-300 dark:border-gray-600 pr-4">
-          <button id="toggle-h1-underline-btn" class="toolbar-btn" title="H1 밑줄 토글">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M7 5v10M17 5v10M7 10h10">
-              </path>
-            </svg>
-          </button>
           <button id="font-minus-btn" class="toolbar-btn" title="글꼴 작게">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -604,17 +625,38 @@ body {
         </div>
         <textarea id="markdown-editor"
           class="w-full h-[600px] p-4 resize-none focus:outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm"
-          placeholder="여기에 마크다운을 직접 입력하거나, 웹페이지나 워드에서 텍스트를 복사해서 붙여넣어 보세요! 자동으로 정리됩니다.
-          
-# 제목 1
-## 제목 2
+          placeholder="# 📝 마크다운 노트 (Markdown Note)
 
-**굵은 글씨** _기울임_ `코드`
+> **한 줄 소개:** 웹이나 문서의 복잡한 텍스트를 복사(Ctrl+C)해서 붙여넣기(Ctrl+V)만 하면 깔끔한 마크다운으로 자동 정리해주는 스마트 에디터입니다.
 
-- 목록 1
-- 목록 2
+---
 
-[링크](https://example.com)"></textarea>
+### ✨ 이 앱의 3가지 핵심 특징
+1. **🚀 스마트 붙여넣기 (Smart Paste)**: 웹 기사나 지저분한 텍스트 덩어리를 복사해서 붙여넣으면, 앱이 스스로 판단하여 보기 좋은 마크다운 문법으로 텍스트를 청소해 줍니다.
+2. **🎨 다이내믹 프리뷰 (Dynamic Preview)**: 코드를 입력하는 즉각 HTML 렌더링된 결과를 우측(혹은 하단) 화면에서 실시간으로 확인할 수 있습니다.
+3. **⚡ Notion 스타일 슬래시 명령어**: 복잡한 문법을 외울 필요 없이, 키보드에서 `/` 기호 하나만 입력하면 제목, 굵게, 표, 다이어그램 등 모든 형태를 쉽게 삽입할 수 있습니다.
+
+---
+
+### 💡 고급 기능 사용 가이드 (수식 & 다이어그램)
+
+#### 🧮 수학 수식 (Math)
+수식 기호 입력을 원하신다면 이렇게 해보세요:
+1. 에디터 빈 공간에서 `/` 를 타이핑합니다.
+2. 메뉴가 나타나면 키보드 아래 방향키(↓)를 눌러 **'수식 (KaTeX)'**을 선택하고 `Enter`를 누릅니다. (혹은 상단 툴바의 `∑` 버튼 클릭)
+3. 화면에 `$$ f(x) = ... $$` 형태의 스니펫이 생깁니다.
+4. `...` 부분에 `E = mc^2` 와 같은 수학 공식 코드를 입력하면 우측 화면에 완벽한 수식 디자인이 나타납니다.
+
+#### 📊 다이어그램 (Diagrams)
+순서도나 상태도를 그리고 싶다면 이렇게 해보세요:
+1. 에디터 빈 공간에서 `/` 를 타이핑합니다.
+2. **'다이어그램 (Mermaid)'** 옵션을 찾아 선택하고 `Enter`를 누릅니다. (혹은 상단 툴바의 `⑆` 버튼 클릭)
+3. 아래와 같은 코드 블록이 생겨납니다:
+   ```mermaid
+   graph TD
+       A --> B
+   ```
+4. 바로 옆 미리보기 화면을 보시면 A에서 B로 화살표가 이어지는 다이어그램이 완성되어 있을 것입니다!"></textarea>
       </div>
 
       <!-- Preview Panel -->
@@ -668,12 +710,16 @@ body {
   <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
   <!-- Application Scripts -->
   <script src="js/storage/storage-manager.js"></script>
   <script src="js/file/file-handler.js"></script>
   <script src="js/editor/markdown-helper.js"></script>
   <script src="js/editor/paste-handler.js"></script>
+  <script src="js/editor/slash-menu.js"></script>
   <script src="js/editor/editor-manager.js"></script>
   <script src="js/ui/modal-manager.js"></script>
   <script src="js/ui/ui-manager.js"></script>

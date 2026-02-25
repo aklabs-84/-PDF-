@@ -29,9 +29,12 @@ class EditorManager {
       return;
     }
 
-    // MarkdownHelper & PasteHandler 초기화
+    // MarkdownHelper, PasteHandler, & SlashMenu 초기화
     this.markdownHelper = new MarkdownHelper(this.textarea);
     this.pasteHandler = new PasteHandler(this.textarea);
+    if (typeof SlashMenu !== 'undefined') {
+      this.slashMenu = new SlashMenu(this);
+    }
 
     // 이벤트 리스너 설정
     this.setupEventListeners();
@@ -184,6 +187,11 @@ class EditorManager {
         },
         code(code, infostring) {
           const lang = (infostring || '').match(/\S*/)[0];
+          
+          if (lang === 'mermaid') {
+            return `<div class="mermaid">${code}</div>\n`;
+          }
+
           if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
             try {
               const highlighted = hljs.highlight(code, { language: lang }).value;
@@ -246,6 +254,33 @@ class EditorManager {
 
       // 스타일 적용
       this.applyPreviewStyles();
+
+      // 수식 렌더링 (KaTeX)
+      if (typeof renderMathInElement !== 'undefined') {
+        try {
+          renderMathInElement(this.preview, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+          });
+        } catch (err) {
+          console.error('KaTeX error:', err);
+        }
+      }
+
+      // 다이어그램 렌더링 (Mermaid)
+      if (typeof mermaid !== 'undefined') {
+        try {
+          // mermaid가 이미 초기화된 엘리먼트를 재처리할 수 있도록 초기화
+          mermaid.init(undefined, this.preview.querySelectorAll('.mermaid'));
+        } catch (err) {
+          console.error('Mermaid error:', err);
+        }
+      }
 
       // 코드 블록 하이라이팅
       if (typeof hljs !== 'undefined') {
@@ -434,6 +469,9 @@ class EditorManager {
   setupCheckboxes() {
     const checkboxes = this.preview.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach((checkbox, index) => {
+      // marked.js 기본 렌더링 시 체크박스 속성이 disabled로 설정됨. 이를 해제
+      checkbox.removeAttribute('disabled');
+      checkbox.classList.add('cursor-pointer');
       checkbox.addEventListener('change', () => {
         // 원본 마크다운에서 체크박스 업데이트
         this.toggleCheckboxInMarkdown(index, checkbox.checked);
@@ -451,12 +489,13 @@ class EditorManager {
     let checkboxCount = 0;
 
     for (let i = 0; i < lines.length; i++) {
-      const match = lines[i].match(/- \[([ x])\]/i);
+      // 마크다운 체크박스 패턴 매칭: - [ ] 또는 - [x] 또는 * [ ] 등
+      const match = lines[i].match(/^(\s*[-*+]\s+)\[([ xX])\]/);
       if (match) {
         if (checkboxCount === index) {
           lines[i] = lines[i].replace(
-            /- \[([ x])\]/i,
-            checked ? '- [x]' : '- [ ]'
+            /^(\s*[-*+]\s+)\[([ xX])\]/,
+            `$1[${checked ? 'x' : ' '}]`
           );
           break;
         }
@@ -464,9 +503,15 @@ class EditorManager {
       }
     }
 
+    const scrollPos = this.textarea.scrollTop;
+    const start = this.textarea.selectionStart;
+    const end = this.textarea.selectionEnd;
+
     this.textarea.value = lines.join('\n');
-    this.isModified = true;
-    this.updateStats();
+    this.textarea.scrollTop = scrollPos;
+    this.textarea.setSelectionRange(start, end);
+
+    this.textarea.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
   /**
