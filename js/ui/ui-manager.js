@@ -100,6 +100,25 @@ class UIManager {
       });
     }
 
+    // 되돌리기/다시 실행
+    const undoBtn = document.getElementById('undo-btn');
+    if (undoBtn) {
+      undoBtn.addEventListener('click', () => {
+        if (window.app && window.app.editorManager) {
+          window.app.editorManager.undo();
+        }
+      });
+    }
+
+    const redoBtn = document.getElementById('redo-btn');
+    if (redoBtn) {
+      redoBtn.addEventListener('click', () => {
+        if (window.app && window.app.editorManager) {
+          window.app.editorManager.redo();
+        }
+      });
+    }
+
     // 동적 컨트롤 삽입 (에디터 전체 보기 및 프리뷰 영역 헤더)
     const editorHeader = document.getElementById('fullscreen-editor-btn')?.parentElement;
     if (editorHeader && !document.getElementById('header-copy-all-btn')) {

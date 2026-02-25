@@ -271,7 +271,7 @@ class App {
   }
 
   /**
-   * HTML 내보내기
+   * HTML 내보내기 (복사 및 다운로드)
    */
   exportHTML() {
     const content = this.editorManager.getContent();
@@ -286,8 +286,18 @@ class App {
       const title = MarkdownHelper.extractTitle(content);
       const filename = title.replace(/[^\w\s가-힣-]/g, '').substring(0, 50) || 'document';
 
+      // 1. 클립보드 복사
+      this.fileHandler.copyToClipboard(html).then(success => {
+        if (success) {
+          this.uiManager.showToast('success', 'HTML 코드가 클립보드에 복사되었습니다. (파일도 다운로드됩니다.)');
+        } else {
+          this.uiManager.showToast('info', 'HTML 파일이 다운로드됩니다.');
+        }
+      });
+
+      // 2. 파일 다운로드
       this.fileHandler.downloadHTML(html, filename);
-      this.uiManager.showToast('success', 'HTML 파일이 다운로드되었습니다.');
+
     } catch (error) {
       console.error('HTML export error:', error);
       this.uiManager.showToast('error', 'HTML 내보내기 중 오류가 발생했습니다.');

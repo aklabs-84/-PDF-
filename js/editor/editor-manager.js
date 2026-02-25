@@ -13,6 +13,13 @@ class EditorManager {
     this.currentDocument = null;
     this.isModified = false;
     this.updatePreviewDebounced = null;
+    
+    // 실행 취소/다시 실행을 위한 히스토리
+    this.history = [];
+    this.historyIndex = -1;
+    this.maxHistoryLength = 50;
+    this.isHandlingHistory = false;
+    this.saveHistoryDebounced = null;
   }
 
   /**
@@ -44,6 +51,11 @@ class EditorManager {
       this.updatePreview();
     }, 300);
 
+    // 디바운스된 히스토리 저장 함수
+    this.saveHistoryDebounced = this.debounce((content, cursorStart, cursorEnd) => {
+      this.saveHistoryState(content, cursorStart, cursorEnd);
+    }, 500);
+
     // 자동 저장 시작
     this.startAutoSave();
 
@@ -60,11 +72,15 @@ class EditorManager {
    * 이벤트 리스너 설정
    */
   setupEventListeners() {
-    // 입력 이벤트 (실시간 미리보기)
+    // 입력 이벤트 (실시간 미리보기 & 히스토리)
     this.textarea.addEventListener('input', () => {
       this.isModified = true;
       this.updatePreviewDebounced();
       this.updateStats();
+      
+      if (!this.isHandlingHistory) {
+         this.saveHistoryDebounced(this.textarea.value, this.textarea.selectionStart, this.textarea.selectionEnd);
+      }
     });
 
     // 키다운 이벤트 (단축키)
@@ -124,10 +140,12 @@ class EditorManager {
           this.exportToPDF();
           break;
         case 'z':
-          // 브라우저 기본 실행 취소 사용
+          e.preventDefault();
+          this.undo();
           break;
         case 'y':
-          // 브라우저 기본 다시 실행 사용
+          e.preventDefault();
+          this.redo();
           break;
       }
     }
@@ -149,6 +167,78 @@ class EditorManager {
   formatText() {
     if (this.pasteHandler) {
       this.pasteHandler.formatText();
+    }
+  }
+
+  /**
+   * 현재 상태를 히스토리에 저장
+   */
+  saveHistoryState(content, start, end) {
+    // 히스토리 인덱스가 마지막이 아니면 (undo를 한 상태에서 새 입력 시) 뒤의 히스토리 삭제
+    if (this.historyIndex < this.history.length - 1) {
+      this.history = this.history.slice(0, this.historyIndex + 1);
+    }
+    
+    // 내용이 변경되지 않았으면 저장하지 않음
+    if (this.history.length > 0 && this.history[this.history.length - 1].content === content) {
+      return;
+    }
+
+    this.history.push({
+      content: content,
+      selectionStart: start,
+      selectionEnd: end
+    });
+
+    if (this.history.length > this.maxHistoryLength) {
+      this.history.shift();
+    } else {
+      this.historyIndex++;
+    }
+  }
+
+  /**
+   * 되돌리기 (Undo)
+   */
+  undo() {
+    if (this.historyIndex > 0) {
+      // 만약 현재 히스토리 인덱스가 -1이 아니고 진행 중이었다면
+      this.historyIndex--;
+      this.applyHistoryState();
+    }
+  }
+
+  /**
+   * 다시 실행 (Redo)
+   */
+  redo() {
+    if (this.historyIndex < this.history.length - 1) {
+      this.historyIndex++;
+      this.applyHistoryState();
+    }
+  }
+
+  /**
+   * 히스토리 상태 적용
+   */
+  applyHistoryState() {
+    if (this.historyIndex >= 0 && this.historyIndex < this.history.length) {
+      this.isHandlingHistory = true;
+      const state = this.history[this.historyIndex];
+      
+      this.textarea.value = state.content;
+      this.textarea.selectionStart = state.selectionStart;
+      this.textarea.selectionEnd = state.selectionEnd;
+      this.textarea.focus();
+      
+      this.isModified = true;
+      this.updatePreview();
+      this.updateStats();
+      
+      // 상태 적용 후 타이머 해제
+      setTimeout(() => {
+        this.isHandlingHistory = false;
+      }, 10);
     }
   }
 
