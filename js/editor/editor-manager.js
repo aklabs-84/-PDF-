@@ -385,13 +385,10 @@ class EditorManager {
       document.head.appendChild(styleEl);
     }
 
-    const hideH1Underline = settings.showH1Underline === false;
-
     const headingStyles = `
       #${this.preview.id} h1 { 
         font-size: 26px; 
         color: ${primaryColor}; 
-        ${hideH1Underline ? '' : `border-bottom: 2px solid ${accentColor};`}
         padding-bottom: 8px;
         margin-bottom: 20px;
         font-weight: 700;
