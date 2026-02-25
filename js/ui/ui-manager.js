@@ -103,12 +103,19 @@ class UIManager {
     // 동적 컨트롤 삽입 (에디터 전체 보기 및 프리뷰 영역 헤더)
     const editorHeader = document.getElementById('fullscreen-editor-btn')?.parentElement;
     if (editorHeader && !document.getElementById('header-copy-all-btn')) {
+      const fullscreenEditorBtn = document.getElementById('fullscreen-editor-btn');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex items-center space-x-1';
+      editorHeader.insertBefore(wrapper, fullscreenEditorBtn);
+      
       const copyBtnHtml = `
-        <button id="header-copy-all-btn" class="p-1 mr-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="마크다운 전체 복사">
+        <button id="header-copy-all-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="문서 내용 단일 복사">
           <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
         </button>
       `;
-      document.getElementById('fullscreen-editor-btn').insertAdjacentHTML('beforebegin', copyBtnHtml);
+      wrapper.insertAdjacentHTML('beforeend', copyBtnHtml);
+      wrapper.appendChild(fullscreenEditorBtn);
+      
       document.getElementById('header-copy-all-btn').addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('copy-all'));
       });
@@ -116,13 +123,28 @@ class UIManager {
 
     const previewHeader = document.getElementById('fullscreen-preview-btn')?.parentElement;
     if (previewHeader && !document.getElementById('header-help-btn')) {
+      const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex items-center space-x-1';
+      previewHeader.insertBefore(wrapper, fullscreenPreviewBtn);
+      
       const helpBtnHtml = `
-        <button id="header-help-btn" class="p-1 mr-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="도움말">
-          <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <button id="header-help-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="도움말">
+          <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </button>
       `;
-      document.getElementById('fullscreen-preview-btn').insertAdjacentHTML('beforebegin', helpBtnHtml);
+      wrapper.insertAdjacentHTML('beforeend', helpBtnHtml);
+      wrapper.appendChild(fullscreenPreviewBtn);
+
       document.getElementById('header-help-btn').addEventListener('click', () => this.showHelp());
+    }
+
+    // H1 밑줄 토글 버튼
+    const toggleH1UnderlineBtn = document.getElementById('toggle-h1-underline-btn');
+    if (toggleH1UnderlineBtn) {
+      toggleH1UnderlineBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('toggle-h1-underline'));
+      });
     }
 
     // 파일 업로드

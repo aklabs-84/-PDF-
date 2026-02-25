@@ -141,6 +141,16 @@ class App {
       }
     });
 
+    // H1 밑줄 토글
+    window.addEventListener('toggle-h1-underline', () => {
+      const settings = StorageManager.getSettings();
+      settings.showH1Underline = settings.showH1Underline === false ? true : false;
+      StorageManager.saveSettings(settings);
+      
+      this.editorManager.applyTemplateStylesToPreview();
+      this.uiManager.showToast('info', `제목(H1) 꾸밈 스타일이 ${settings.showH1Underline ? '켜졌' : '꺼졌'}습니다.`, 1500);
+    });
+
     // 본문 전체 복사
     window.addEventListener('copy-all', () => {
       const content = this.editorManager.getMarkdown();

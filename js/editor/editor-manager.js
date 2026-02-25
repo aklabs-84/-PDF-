@@ -417,11 +417,12 @@ class EditorManager {
 
     // 템플릿별 특별한 스타일 추가
     let templateSpecificStyles = '';
+    const hideH1Underline = settings.showH1Underline === false;
 
     if (template.name === 'business') {
       templateSpecificStyles = `
         #${this.preview.id} h1 {
-          border-bottom: 3px solid ${accentColor};
+          ${hideH1Underline ? '' : `border-bottom: 3px solid ${accentColor};`}
           padding-bottom: 12px;
           margin-bottom: 24px;
           font-weight: 700;
@@ -436,10 +437,9 @@ class EditorManager {
     } else if (template.name === 'creative') {
       templateSpecificStyles = `
         #${this.preview.id} h1 {
-          background: linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}11 100%);
+          ${hideH1Underline ? '' : `background: linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}11 100%);\n          border-left: 5px solid ${accentColor};`}
           padding: 16px 20px;
           border-radius: 8px;
-          border-left: 5px solid ${accentColor};
           margin: 20px 0;
         }
         #${this.preview.id} h2 {
@@ -455,7 +455,7 @@ class EditorManager {
       templateSpecificStyles = `
         #${this.preview.id} h1 {
           text-align: center;
-          border-bottom: 2px solid ${primaryColor};
+          ${hideH1Underline ? '' : `border-bottom: 2px solid ${primaryColor};`}
           padding-bottom: 16px;
           margin-bottom: 32px;
           font-weight: 700;
@@ -472,7 +472,7 @@ class EditorManager {
       // clean 템플릿
       templateSpecificStyles = `
         #${this.preview.id} h1 {
-          border-bottom: 2px solid ${accentColor};
+          ${hideH1Underline ? '' : `border-bottom: 2px solid ${accentColor};`}
           padding-bottom: 8px;
           margin-bottom: 20px;
         }
