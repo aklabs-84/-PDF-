@@ -49,9 +49,10 @@ class SlashMenu {
 
   renderMenuItems() {
     this.menuElement.innerHTML = '';
+    this.itemElements = [];
     this.commands.forEach((cmd, index) => {
       const item = document.createElement('div');
-      item.className = `px-4 py-2 cursor-pointer flex items-center space-x-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${index === this.selectedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''}`;
+      item.className = `slash-menu-item px-4 py-2 cursor-pointer flex items-center space-x-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700`;
       
       const iconSpan = document.createElement('span');
       iconSpan.className = 'font-bold w-5 text-center text-gray-500';
@@ -65,7 +66,7 @@ class SlashMenu {
       
       item.addEventListener('mouseenter', () => {
         this.selectedIndex = index;
-        this.renderMenuItems();
+        this.updateSelection();
       });
       
       item.addEventListener('mousedown', (e) => {
@@ -74,7 +75,27 @@ class SlashMenu {
       });
       
       this.menuElement.appendChild(item);
+      this.itemElements.push(item);
     });
+    this.updateSelection();
+  }
+
+  updateSelection() {
+    if (!this.itemElements) return;
+    this.itemElements.forEach((item, index) => {
+      if (index === this.selectedIndex) {
+        item.classList.add('bg-gray-100', 'dark:bg-gray-700');
+      } else {
+        item.classList.remove('bg-gray-100', 'dark:bg-gray-700');
+      }
+    });
+  }
+
+  scrollToSelection() {
+    if (!this.itemElements || !this.itemElements[this.selectedIndex]) return;
+    const selectedItem = this.itemElements[this.selectedIndex];
+    // 간단한 스크롤 조정을 위해 scrollIntoView(false) 또는 약간의 연산 처리
+    selectedItem.scrollIntoView({ block: 'nearest' });
   }
 
   createMirrorDiv() {
@@ -123,11 +144,13 @@ class SlashMenu {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         this.selectedIndex = (this.selectedIndex + 1) % this.commands.length;
-        this.renderMenuItems();
+        this.updateSelection();
+        this.scrollToSelection();
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         this.selectedIndex = (this.selectedIndex - 1 + this.commands.length) % this.commands.length;
-        this.renderMenuItems();
+        this.updateSelection();
+        this.scrollToSelection();
       } else if (e.key === 'Enter') {
         e.preventDefault();
         this.commands[this.selectedIndex].action();
