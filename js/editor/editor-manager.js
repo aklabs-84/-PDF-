@@ -428,7 +428,7 @@ class EditorManager {
     
     // 블록 수식 ($$ ... $$)
     let processed = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
-      const placeholder = `__MATH_BLOCK_${mathIndex}__`;
+      const placeholder = `@@MATH_BLOCK_${mathIndex}@@`;
       mathBlocks.push(match);
       mathIndex++;
       return placeholder;
@@ -436,7 +436,7 @@ class EditorManager {
 
     // 인라인 수식 ($ ... $) - 단, 앞뒤가 공백이 아닌 경우만 (달러 기호 자체 사용과 구분)
     processed = processed.replace(/(^|[^\\])\$([^\$\n]+?)\$(?!\d)/g, (match, prefix, content) => {
-      const placeholder = `__MATH_BLOCK_${mathIndex}__`;
+      const placeholder = `@@MATH_BLOCK_${mathIndex}@@`;
       mathBlocks.push(`$${content}$`);
       mathIndex++;
       return prefix + placeholder;
@@ -522,7 +522,7 @@ class EditorManager {
     
     // 보호했던 수식 블록 복원 (정규식 치환 시 특수문자 무시를 위해 콜백 함수 사용)
     mathBlocks.forEach((block, index) => {
-      html = html.replace(`__MATH_BLOCK_${index}__`, () => block);
+      html = html.replace(`@@MATH_BLOCK_${index}@@`, () => block);
     });
 
     return html;
