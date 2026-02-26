@@ -304,10 +304,23 @@ class FileHandler {
 <body>
 ${bodyHTML}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (typeof mermaid !== 'undefined') {
       mermaid.initialize({ startOnLoad: true });
+    }
+    if (typeof renderMathInElement !== 'undefined') {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '\\[', right: '\\]', display: true}
+        ],
+        throwOnError: false
+      });
     }
   });
 </script>
