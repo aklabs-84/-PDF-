@@ -232,18 +232,47 @@ class App {
     });
 
     // 모달 액션 핸들링 이벤트
-    const handleModalAction = (e) => {
-      if (e.detail.modalId === modalId && e.detail.action === 'save') {
-        const geminiKey = document.getElementById('gemini-key-input').value;
-        const openaiKey = document.getElementById('openai-key-input').value;
+    const handleModalAction = async (e) => {
+      if (e.detail.modalId !== modalId) return;
+
+      if (e.detail.action === 'save') {
+        const geminiKey = document.getElementById('gemini-key-input').value.trim();
+        const openaiKey = document.getElementById('openai-key-input').value.trim();
         const prefModel = document.getElementById('pref-model-select').value;
         
-        window.aiService.saveSettings(geminiKey, openaiKey, prefModel);
-        this.uiManager.showToast('success', '설정이 안전하게 저장되었습니다.');
-        this.uiManager.modalManager.close(modalId);
+        // Validation UI
+        const saveBtn = document.querySelector(`#modal-${modalId} .modal-button[data-action="save"]`);
+        const originalBtnText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<div class="spinner border-2 w-4 h-4 border-white mr-2 inline-block align-middle"></div>검증 중...';
+        saveBtn.disabled = true;
+
+        try {
+          // 키가 입력된 경우에만 검증 시도
+          if (prefModel === 'gemini' && geminiKey) {
+            await window.aiService.validateGeminiKey(geminiKey);
+          } else if (prefModel === 'openai' && openaiKey) {
+            await window.aiService.validateOpenAIKey(openaiKey);
+          }
+          
+          window.aiService.saveSettings(geminiKey, openaiKey, prefModel);
+          this.uiManager.showToast('success', 'API 키 검증 완료! 설정이 안전하게 저장되었습니다.');
+          this.uiManager.modalManager.close(modalId);
+          window.removeEventListener('modal-action', handleModalAction);
+        } catch (error) {
+          this.uiManager.showToast('error', `오류: ${error.message}`);
+          saveBtn.innerHTML = originalBtnText;
+          saveBtn.disabled = false;
+        }
+      } else if (e.detail.action === 'cancel' || e.detail.action === 'close') {
         window.removeEventListener('modal-action', handleModalAction);
       }
     };
+
+    // 기존 리스너 누수 방지
+    if (this._currentSettingsHandler) {
+      window.removeEventListener('modal-action', this._currentSettingsHandler);
+    }
+    this._currentSettingsHandler = handleModalAction;
     window.addEventListener('modal-action', handleModalAction);
   }
 

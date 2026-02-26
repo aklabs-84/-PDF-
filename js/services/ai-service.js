@@ -141,6 +141,55 @@ Your task is to take the user's raw, unstructured text and beautifully format it
   }
 
   /**
+   * 구글 Gemini API 키 유효성 검증
+   */
+  async validateGeminiKey(apiKey) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.models.GEMINI}:generateContent?key=${apiKey}`;
+    const payload = {
+      contents: [{ parts: [{ text: 'Hello' }] }]
+    };
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Gemini API 키가 유효하지 않습니다.');
+    }
+    return true;
+  }
+
+  /**
+   * OpenAI API 키 유효성 검증
+   */
+  async validateOpenAIKey(apiKey) {
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+    const payload = {
+      model: this.models.OPENAI,
+      messages: [{ role: 'user', content: 'Hello' }],
+      max_tokens: 1
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'OpenAI API 키가 유효하지 않습니다.');
+    }
+    return true;
+  }
+
+  /**
    * LLM이 종종 남기는 ```markdown 랩퍼 제거
    */
   cleanMarkdownWrap(text) {

@@ -729,13 +729,13 @@ class EditorManager {
   }
 
   /**
-   * 텍스트에어리어 자동 크기 조절
+   * 에디터 높이 자동 조절 (스크롤바 숨김 및 높이 연동)
    */
   autoResizeTextarea() {
-    // 높이를 임시로 auto로 설정하여 줄어들 수 있게 한 후, 스크롤 높이 측정
-    this.textarea.style.height = 'auto';
-    // 최소 600px 유지
-    this.textarea.style.height = Math.max(600, this.textarea.scrollHeight) + 'px';
+    this.textarea.style.height = 'auto'; // 잠시 초기화하여 실제 scrollHeight를 측정
+    const newHeight = Math.max(600, this.textarea.scrollHeight) + 'px';
+    this.textarea.style.height = newHeight;
+    this.textarea.style.minHeight = newHeight;
   }
 
   /**
