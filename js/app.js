@@ -135,6 +135,18 @@ class App {
       }
     });
 
+    // ✨ AI 마법 정리 (Magic Format)
+    window.addEventListener('ai-format', () => {
+      if (this.editorManager && typeof this.editorManager.magicFormat === 'function') {
+        this.editorManager.magicFormat();
+      }
+    });
+
+    // ⚙️ 설정 열기
+    window.addEventListener('open-settings', () => {
+      this.openSettingsModal();
+    });
+
     // 본문 전체 복사
     window.addEventListener('copy-all', () => {
       const content = this.editorManager.getContent();
@@ -167,6 +179,72 @@ class App {
         this.uiManager.showToast('error', '미리보기 복사에 실패했습니다.');
       }
     });
+  }
+
+  /**
+   * 설정 모달 열기
+   */
+  openSettingsModal() {
+    const settings = window.aiService.getSettings();
+    
+    // 모달 컨텐츠 렌더링
+    const content = `
+      <div class="space-y-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          ✨ <strong>AI 마법 정리</strong> 기능을 사용하기 위한 API 키를 설정합니다.<br>
+          키는 서버에 전송되지 않고 사용자의 브라우저 로컬 저장소에만 안전하게 보관됩니다. (2026년 기준 최신 모델 모델 적용됨)
+        </p>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">우선 사용 모델 선택</label>
+          <select id="pref-model-select" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+            <option value="gemini" ${settings.preferredModel === 'gemini' ? 'selected' : ''}>Google Gemini (2.5 Flash Lite - 무료/극강 가성비)</option>
+            <option value="openai" ${settings.preferredModel === 'openai' ? 'selected' : ''}>OpenAI (GPT-5 Mini - 완벽한 품질 표준)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Google Gemini API 키</label>
+          <input type="password" id="gemini-key-input" value="${settings.geminiKey}" placeholder="AIzaSy..." 
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <p class="text-xs text-gray-500 mt-1"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-500 hover:underline">Google AI Studio에서 무료 키 발급받기</a></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">OpenAI API 키</label>
+          <input type="password" id="openai-key-input" value="${settings.openaiKey}" placeholder="sk-..." 
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <p class="text-xs text-gray-500 mt-1"><a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-500 hover:underline">OpenAI 플랫폼에서 키 발급받기</a></p>
+        </div>
+      </div>
+    `;
+
+    // 모달 호출
+    const modalId = 'settings-modal';
+    this.uiManager.modalManager.show(modalId, {
+      title: '⚙️ 환경 설정',
+      size: 'medium',
+      content: content,
+      buttons: [
+        { label: '취소', action: 'cancel' },
+        { label: '저장하기', action: 'save', className: 'bg-blue-600 text-white hover:bg-blue-700' }
+      ]
+    });
+
+    // 모달 액션 핸들링 이벤트
+    const handleModalAction = (e) => {
+      if (e.detail.modalId === modalId && e.detail.action === 'save') {
+        const geminiKey = document.getElementById('gemini-key-input').value;
+        const openaiKey = document.getElementById('openai-key-input').value;
+        const prefModel = document.getElementById('pref-model-select').value;
+        
+        window.aiService.saveSettings(geminiKey, openaiKey, prefModel);
+        this.uiManager.showToast('success', '설정이 안전하게 저장되었습니다.');
+        this.uiManager.modalManager.close(modalId);
+        window.removeEventListener('modal-action', handleModalAction);
+      }
+    };
+    window.addEventListener('modal-action', handleModalAction);
   }
 
   /**

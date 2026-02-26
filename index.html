@@ -421,6 +421,18 @@ body {
             내 문서
           </button>
 
+          <button id="settings-btn" onclick="window.dispatchEvent(new CustomEvent('open-settings'))"
+            class="p-2 ml-1 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="설정 (AI 모델 연동)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+
           <button id="guide-btn"
             class="px-4 py-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors border border-blue-200 dark:border-blue-800">
             📖 학습 가이드
@@ -442,6 +454,21 @@ body {
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 flex-shrink-0 sticky top-4 z-40">
       <div class="flex flex-wrap items-center gap-2">
+        <!-- AI 마법 정리 -->
+        <button id="ai-format-btn" onclick="window.dispatchEvent(new CustomEvent('ai-format'))"
+          class="toolbar-btn text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 hover:bg-blue-100 dark:hover:bg-blue-800 border border-blue-200 dark:border-blue-800"
+          title="✨ AI 마법 정리 (자동 마크다운 변환)">
+          <svg class="w-4 h-4 mr-1 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+            </path>
+          </svg>
+          AI 정리
+        </button>
+
+        <div class="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
         <!-- File Operations -->
         <div class="flex items-center space-x-2 border-r border-gray-300 dark:border-gray-600 pr-4">
           <button id="new-doc-btn" class="toolbar-btn" title="새 문서">
@@ -736,6 +763,7 @@ body {
   <!-- Application Scripts -->
   <script src="js/storage/storage-manager.js"></script>
   <script src="js/file/file-handler.js"></script>
+  <script src="js/services/ai-service.js"></script>
   <script src="js/editor/markdown-helper.js"></script>
   <script src="js/editor/paste-handler.js"></script>
   <script src="js/editor/slash-menu.js"></script>

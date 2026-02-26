@@ -660,6 +660,75 @@ class EditorManager {
   }
 
   /**
+   * AI 마법 정리 (Magic Format) 실행
+   */
+  async magicFormat() {
+    const text = this.getContent();
+    if (!text.trim()) {
+      window.app.uiManager.showToast('error', '정리할 텍스트가 없습니다.');
+      return;
+    }
+
+    const settings = window.aiService.getSettings();
+    if (!settings.geminiKey && !settings.openaiKey) {
+      window.app.uiManager.alert('AI 마법 정리를 사용하시려면 [⚙️ 설정] 메뉴에서 API 키를 먼저 입력해주세요.');
+      window.dispatchEvent(new CustomEvent('open-settings'));
+      return;
+    }
+
+    const loadingId = window.app.uiManager.showLoading('✨ AI가 마크다운으로 예쁘게 정리하고 있습니다...\n(텍스트 길이에 따라 몇 초 정도 걸릴 수 있습니다)');
+    
+    // 버튼 상태 변경
+    const btn = document.getElementById('ai-format-btn');
+    const originalBtnHtml = btn.innerHTML;
+    btn.innerHTML = '<div class="spinner border-2 w-4 h-4 border-blue-600 mr-2"></div>정리 중...';
+    btn.disabled = true;
+
+    try {
+      // 선택된 텍스트가 있다면 그것만, 아니면 전체 변환
+      let targetText = "";
+      let isSelection = false;
+      const start = this.textarea.selectionStart;
+      const end = this.textarea.selectionEnd;
+      
+      if (start !== end) {
+        targetText = this.textarea.value.substring(start, end);
+        isSelection = true;
+      } else {
+        targetText = text;
+      }
+
+      const formattedMarkdown = await window.aiService.formatToMarkdown(targetText);
+      
+      // 상태 저장 (히스토리)
+      this.saveHistoryState(this.textarea.value, start, end);
+      
+      if (isSelection) {
+        // 선택 영역만 교체
+        const before = this.textarea.value.substring(0, start);
+        const after = this.textarea.value.substring(end);
+        this.setContent(before + formattedMarkdown + after);
+        
+        // 포커스 복원 및 선택 영역 유지
+        this.textarea.focus();
+        this.textarea.setSelectionRange(start, start + formattedMarkdown.length);
+      } else {
+        // 전체 교체
+        this.setContent(formattedMarkdown);
+      }
+
+      window.app.uiManager.showToast('success', '✨ AI가 마크다운 정리를 완료했습니다!');
+    } catch (error) {
+      console.error('AI Format Error:', error);
+      window.app.uiManager.showToast('error', error.message || 'AI 정리 중 개통 오류가 발생했습니다.');
+    } finally {
+      window.app.uiManager.hideLoading(loadingId);
+      btn.innerHTML = originalBtnHtml;
+      btn.disabled = false;
+    }
+  }
+
+  /**
    * 텍스트에어리어 자동 크기 조절
    */
   autoResizeTextarea() {
