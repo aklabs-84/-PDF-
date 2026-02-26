@@ -361,10 +361,7 @@ body {
 
 /* Responsive Utilities */
 @media (max-width: 1024px) {
-  #markdown-editor,
-  #markdown-preview {
-    height: 400px;
-  }
+  /* No fixed heights, relying on flex layout */
 }
 
 @media (max-width: 768px) {
@@ -374,11 +371,6 @@ body {
 
   .toolbar-btn svg {
     @apply w-4 h-4;
-  }
-
-  #markdown-editor,
-  #markdown-preview {
-    height: 300px;
   }
 }
 
@@ -635,7 +627,7 @@ body {
 
       <!-- Editor Panel -->
       <div id="editor-panel"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full min-h-0">
         <div
           class="border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <h2 id="editor-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300">마크다운 에디터</h2>
@@ -685,7 +677,7 @@ body {
 
       <!-- Preview Panel -->
       <div id="preview-panel"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full min-h-0">
         <div
           class="border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <h2 id="preview-title" class="text-sm font-semibold text-gray-700 dark:text-gray-300">마크다운 미리보기</h2>
@@ -698,7 +690,7 @@ body {
           </button>
         </div>
         <div id="markdown-preview"
-          class="p-6 h-[calc(100vh-220px)] min-h-[600px] overflow-y-auto prose prose-slate dark:prose-invert max-w-none">
+          class="p-6 h-full flex-grow overflow-y-auto prose prose-slate dark:prose-invert max-w-none">
           <p class="text-gray-400">미리보기가 여기에 표시됩니다...</p>
         </div>
       </div>
