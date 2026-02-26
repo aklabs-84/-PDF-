@@ -645,7 +645,7 @@ body {
           </button>
         </div>
         <textarea id="markdown-editor"
-          class="w-full h-[600px] p-4 resize-none focus:outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm"
+          class="w-full h-[calc(100vh-220px)] min-h-[600px] p-4 resize-none focus:outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm"
           placeholder="# 📝 마크다운 노트 (Markdown Note)
 
 > **한 줄 소개:** 웹이나 문서의 복잡한 텍스트를 복사(Ctrl+C)해서 붙여넣기(Ctrl+V)만 하면 깔끔한 마크다운으로 자동 정리해주는 스마트 에디터입니다.
@@ -693,7 +693,8 @@ body {
             </svg>
           </button>
         </div>
-        <div id="markdown-preview" class="p-6 h-[600px] overflow-y-auto prose prose-slate dark:prose-invert max-w-none">
+        <div id="markdown-preview"
+          class="p-6 h-[calc(100vh-220px)] min-h-[600px] overflow-y-auto prose prose-slate dark:prose-invert max-w-none">
           <p class="text-gray-400">미리보기가 여기에 표시됩니다...</p>
         </div>
       </div>
@@ -716,7 +717,7 @@ body {
   </main>
 
   <!-- Footer -->
-  <footer class="mt-12 py-6 border-t border-gray-200 dark:border-gray-700">
+  <footer class="mt-6 py-4 border-t border-gray-200 dark:border-gray-700">
     <div class="container mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
       <p>마크다운 노트 v1.1 - Made with ❤️</p>
       <p class="mt-1">무료로 마크다운 문서를 작성하고 다운로드하세요</p>
