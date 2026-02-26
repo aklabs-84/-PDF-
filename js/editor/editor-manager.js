@@ -62,6 +62,9 @@ class EditorManager {
     // 저장된 문서 불러오기
     this.loadLastDocument();
     
+    // 초기 컨텐츠에 맞춰 높이 조절
+    this.autoResizeTextarea();
+    
     // 초기 상태 히스토리 저장
     this.saveHistoryState(this.textarea.value, this.textarea.selectionStart || 0, this.textarea.selectionEnd || 0);
 
@@ -78,6 +81,7 @@ class EditorManager {
     // 입력 이벤트 (실시간 미리보기 & 히스토리)
     this.textarea.addEventListener('input', () => {
       this.isModified = true;
+      this.autoResizeTextarea();
       this.updatePreviewDebounced();
       this.updateStats();
       
@@ -89,11 +93,6 @@ class EditorManager {
     // 키다운 이벤트 (단축키)
     this.textarea.addEventListener('keydown', (e) => {
       this.handleKeydown(e);
-    });
-
-    // 스크롤 동기화
-    this.textarea.addEventListener('scroll', () => {
-      this.syncScroll();
     });
 
     // 탭 키 처리
@@ -661,14 +660,13 @@ class EditorManager {
   }
 
   /**
-   * 스크롤 동기화
+   * 텍스트에어리어 자동 크기 조절
    */
-  syncScroll() {
-    const scrollPercentage = this.textarea.scrollTop /
-      (this.textarea.scrollHeight - this.textarea.clientHeight);
-
-    this.preview.scrollTop = scrollPercentage *
-      (this.preview.scrollHeight - this.preview.clientHeight);
+  autoResizeTextarea() {
+    // 높이를 임시로 auto로 설정하여 줄어들 수 있게 한 후, 스크롤 높이 측정
+    this.textarea.style.height = 'auto';
+    // 최소 600px 유지
+    this.textarea.style.height = Math.max(600, this.textarea.scrollHeight) + 'px';
   }
 
   /**
