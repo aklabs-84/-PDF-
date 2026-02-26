@@ -612,7 +612,13 @@ greet("마크다운");
           <li><code class="text-red-600 dark:text-red-400 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">![이미지](URL)</code> - 이미지</li>
         </ul>
 
-        <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">문의</h4>
+        <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+          <p class="font-bold flex items-center mb-1 text-yellow-800 dark:text-yellow-400"><span class="mr-1">⚠️</span> HTML 이미지 태그 렌더링 안내</p>
+          <p class="mb-1">보안(XSS 해킹 방지)을 위해 <code>&lt;img src="..."&gt;</code> 와 같은 직접적인 HTML 태그는 미리보기 화면에서 <strong>무시되어 빈 칸으로 표시</strong>됩니다.</p>
+          <p>이미지가 보이게 하려면 반드시 위 가이드의 마크다운 전용 문법인 <code>![대체텍스트](이미지URL)</code> 형태로 변환하여 사용해 주세요.</p>
+        </div>
+
+        <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700 mt-6">문의</h4>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">문제가 발생하거나 제안사항이 있으시면 GitHub 이슈를 등록해주세요.</p>
       </div>
     `;
