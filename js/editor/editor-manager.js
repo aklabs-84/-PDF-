@@ -733,7 +733,7 @@ class EditorManager {
    */
   autoResizeTextarea() {
     this.textarea.style.height = 'auto'; // 잠시 초기화하여 실제 scrollHeight를 측정
-    const newHeight = Math.max(600, this.textarea.scrollHeight) + 'px';
+    const newHeight = Math.max(150, this.textarea.scrollHeight) + 'px';
     this.textarea.style.height = newHeight;
     this.textarea.style.minHeight = newHeight;
   }
