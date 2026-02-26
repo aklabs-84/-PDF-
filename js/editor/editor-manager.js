@@ -671,7 +671,7 @@ class EditorManager {
 
     const settings = window.aiService.getSettings();
     if (!settings.geminiKey && !settings.openaiKey) {
-      window.app.uiManager.alert('AI 마법 정리를 사용하시려면 [⚙️ 설정] 메뉴에서 API 키를 먼저 입력해주세요.');
+      window.app.uiManager.modalManager.alert('✨ AI 마법 정리를 사용하시려면 [⚙️ 설정] 메뉴에서 API 키를 먼저 입력해주세요.');
       window.dispatchEvent(new CustomEvent('open-settings'));
       return;
     }
