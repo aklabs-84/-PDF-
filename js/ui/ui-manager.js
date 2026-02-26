@@ -148,6 +148,9 @@ class UIManager {
       previewHeader.insertBefore(wrapper, fullscreenPreviewBtn);
       
       const helpBtnHtml = `
+        <button id="header-copy-preview-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="렌더링 결과 복사 (서식 유지)">
+          <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </button>
         <button id="header-help-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="도움말">
           <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </button>
@@ -155,6 +158,9 @@ class UIManager {
       wrapper.insertAdjacentHTML('beforeend', helpBtnHtml);
       wrapper.appendChild(fullscreenPreviewBtn);
 
+      document.getElementById('header-copy-preview-btn').addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('copy-preview'));
+      });
       document.getElementById('header-help-btn').addEventListener('click', () => this.showHelp());
     }
 

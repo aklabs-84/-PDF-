@@ -145,6 +145,28 @@ class App {
         this.uiManager.showToast('error', '텍스트 복사에 실패했습니다.');
       });
     });
+
+    // 렌더링된 미리보기 결과 복사 (Rich Text)
+    window.addEventListener('copy-preview', () => {
+      const previewEl = document.getElementById('markdown-preview');
+      if (!previewEl) return;
+      
+      try {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(previewEl);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        document.execCommand('copy');
+        selection.removeAllRanges();
+        
+        this.uiManager.showToast('success', '렌더링된 서식 전체가 클립보드에 복사되었습니다.');
+      } catch (err) {
+        console.error('Failed to copy preview: ', err);
+        this.uiManager.showToast('error', '미리보기 복사에 실패했습니다.');
+      }
+    });
   }
 
   /**
@@ -282,7 +304,8 @@ class App {
     }
 
     try {
-      const html = marked.parse(content);
+      // 일반적인 marked.parse가 아닌, 수식 보호 처리가 포함된 에디터 매니저의 파서를 사용
+      const html = this.editorManager.parseMarkdown(content);
       const title = MarkdownHelper.extractTitle(content);
       const filename = title.replace(/[^\w\s가-힣-]/g, '').substring(0, 50) || 'document';
 
