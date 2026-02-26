@@ -112,6 +112,13 @@ class EditorManager {
     this.textarea.addEventListener('paste', (e) => {
       this.handlePaste(e);
     });
+
+    // 브라우저 탭 활성화 시 (다른 탭에 다녀왔을 때) 다이어그램 재렌더링 보정을 위해 새로고침
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && document.querySelector('.mermaid')) {
+        this.updatePreview();
+      }
+    });
   }
 
   /**
